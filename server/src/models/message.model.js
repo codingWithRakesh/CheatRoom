@@ -7,9 +7,8 @@ const messageSchema = new Schema({
         ref: "Room",
         required: true
     },
-    fingerprintID: {
-        type: Schema.Types.ObjectId,
-        ref: "Fingerprint",
+    senderId: {
+        type: String,
         required: true
     },
     content: {
@@ -20,10 +19,6 @@ const messageSchema = new Schema({
     timestamp: {
         type: Date,
         default: Date.now
-    },
-    isReply: {
-        type: Boolean,
-        default: false
     },
     parentMessageId: {
         type: Schema.Types.ObjectId,

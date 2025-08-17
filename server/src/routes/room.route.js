@@ -7,7 +7,7 @@ import {
 
 const router = Router();
 
-router.route("/generate").post(generateRoomCode);
+router.route("/generate").get(generateRoomCode);
 router.route("/join").post(joinRoom);
 router.route("/exit").post(exitRoom);
 
