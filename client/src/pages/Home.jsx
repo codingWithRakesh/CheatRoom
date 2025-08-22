@@ -1,5 +1,5 @@
 import React from 'react'
-import ContentDiv from '../components/contentDiv'
+import ContentDiv from '../components/ContentDiv'
 
 const Home = () => {
   return (
