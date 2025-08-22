@@ -3,8 +3,8 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom"
 import App from './App.jsx'
-import Home from './pages/home.jsx'
-import Message from './pages/message.jsx'
+import Home from './pages/Home.jsx'
+import Message from './pages/Message.jsx'
 import Error from './pages/Error.jsx'
 
 const router = createBrowserRouter([
