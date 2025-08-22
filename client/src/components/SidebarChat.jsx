@@ -14,7 +14,7 @@ const SidebarChat = () => {
         setTimeout(() => setIsCopied(false), 2000);
     };
     return (
-        <div className="messageDetails h-full bg-gray-800 w-[25%] border border-gray-700 rounded-lg p-4 flex flex-col items-center justify-center">
+        <div className="hidden lg:flex h-full bg-gray-800 w-[25%] border border-gray-700 rounded-lg p-4 flex-col items-center justify-center">
             <div className="imageDiv h-[12rem] w-[12rem] overflow-hidden rounded-full mb-4">
                 {/* <img className='h-full w-full object-cover' src={profile} alt="" /> */}
                 <img className='h-full w-full object-cover' src="https://picsum.photos/800/600" alt="" />
