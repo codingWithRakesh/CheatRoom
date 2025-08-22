@@ -1,95 +1,130 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MdDone } from 'react-icons/md';
 import { TbCopy } from 'react-icons/tb';
 import SidebarChat from '../components/SidebarChat';
 import { RiGeminiFill } from "react-icons/ri";
 import { IoSendSharp } from "react-icons/io5";
-import profile from "../assets/images/profile.jpeg";
 import { LuReplyAll } from "react-icons/lu";
 import { IoClose } from "react-icons/io5";
-
-// Import Highlight.js and styles
+import { FaUser } from 'react-icons/fa6';
+import { useParams } from 'react-router-dom';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
-
-// Import specific language support
 import cpp from 'highlight.js/lib/languages/cpp';
 import javascript from 'highlight.js/lib/languages/javascript';
+import fingerprintStore from '../store/fingerprintStore';
+import messageStore from '../store/messageStore';
+
 hljs.registerLanguage('cpp', cpp);
 hljs.registerLanguage('javascript', javascript);
 
 const Message = () => {
+  const { code } = useParams();
   const [copiedMessageId, setCopiedMessageId] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
-  const [message, setMessage] = useState('');
+  const [messageInput, setMessageInput] = useState('');
   const [hoveredMessage, setHoveredMessage] = useState(null);
+  const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: `Here's an example of JavaScript code:
-\`\`\`javascript
-/**
- * Generates a Fibonacci series up to a specified number of terms.
- * @param {number} num - The number of terms to generate in the series.
- * @returns {number[]} An array containing the Fibonacci series.
- */
-function fibonacciSeries(num) {
-  // Handle edge cases for 0 or 1 term
-  if (num <= 0) {
-    return [];
-  }
-  if (num === 1) {
-    return [0];
-  }
+  const [currentMessageId, setCurrentMessageId] = useState(null);
 
-  // Initialize with the first two numbers
-  const series = [0, 1];
+  // Get state and actions from messageStore
+  const {
+    isLoading,
+    error,
+    message,
+    socket,
+    getMessages,
+    sendMessage,
+    clearError,
+    clearMessage
+  } = messageStore();
 
-  // Loop to generate the rest of the series
-  for (let i = 2; i < num; i++) {
-    const nextFib = series[i - 1] + series[i - 2];
-    series.push(nextFib);
-  }
+  const { visitorId } = fingerprintStore();
 
-  return series;
-}
+  // Use a ref to track if we've joined the room
+  const hasJoinedRoom = useRef(false);
 
-// --- Example Usage ---
-const numberOfTerms = 10;
-const fibSequence = fibonacciSeries(numberOfTerms);
+  // Initialize socket connection and join room
+  useEffect(() => {
+    if (!socket || !code || !visitorId || hasJoinedRoom.current) return;
 
-console.log(\`Fibonacci series with \${numberOfTerms} terms:\`); // Fibonacci series with 10 terms:
-console.log(fibSequence); // [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
-\`\`\`
+    // Join the room using the same format as your working example
+    const socketUserName = `${visitorId}-${code}`;
+    console.log("Joining room:", socketUserName);
+    socket.emit("join-room", socketUserName);
+    hasJoinedRoom.current = true;
 
-That's awesome. I think our users will really appreciate the improvements.`,
-      sender: "Bonnie Green",
-      time: "11:46",
-      isMe: false
-    },
-    {
-      id: 2,
-      text: `Yes, I completely agree! The new features will make the experience much better for everyone.`,
-      sender: "You",
-      time: "11:48",
-      isMe: true
+  }, []);
+
+  // Socket event listener for real-time messages
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (messageData) => {
+      console.log("New message received:", messageData);
+
+      // Check if message already exists
+      const messageExists = messages.some(msg =>
+        msg._id === messageData._id ||
+        (msg.tempId && msg.tempId === messageData.tempId)
+      );
+
+      if (!messageExists) {
+        // Add the new message to local state
+        setMessages(prev => {
+          // if (currentMessageId && messageData.tempId === currentMessageId) {
+          //   return prev;
+          // }
+          return [...prev, {
+            ...messageData,
+            isOwn: messageData.senderId === visitorId
+          }]
+        });
+      }
+    };
+
+    socket.on("message", handleNewMessage);
+
+    return () => {
+      socket.off("message", handleNewMessage);
+    };
+  }, [socket, visitorId]); // Removed messages from dependencies
+
+  // Fetch messages when component mounts or room changes
+  useEffect(() => {
+    if (code && visitorId) {
+      getMessages(code, setMessages, visitorId).catch(err => {
+        console.error("Error fetching messages:", err);
+      });
     }
-  ]);
+  }, [code, visitorId, getMessages]);
+
+  // Handle errors from store
+  useEffect(() => {
+    if (error) {
+      alert(error);
+      clearError();
+    }
+  }, [error, clearError]);
+
+  // Handle success messages from store
+  useEffect(() => {
+    if (message) {
+      console.log(message);
+      clearMessage();
+    }
+  }, [message, clearMessage]);
 
   // Initialize Highlight.js and scroll to bottom
   useEffect(() => {
-    // Highlight all code blocks on component mount and update
-    hljs.highlightAll();
-    
-    // Scroll to bottom when messages change
+    // hljs.highlightAll();
     scrollToBottom();
-    
-    // Also highlight when messages change
+
     const timer = setTimeout(() => {
-      hljs.highlightAll();
+      // hljs.highlightAll();
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, [messages]);
 
@@ -116,39 +151,55 @@ That's awesome. I think our users will really appreciate the improvements.`,
     setReplyTo(null);
   };
 
-  const handleSend = () => {
-    if (message.trim()) {
-      // Process the message to handle code blocks
-      let processedMessage = message;
-      
-      // Check if the message contains code blocks without language specification
-      if (message.includes('```') && !message.includes('```javascript') && 
-          !message.includes('```js') && !message.includes('```cpp')) {
-        // Auto-detect JavaScript code if no language is specified
-        if (message.includes('function') || message.includes('const') || 
-            message.includes('let') || message.includes('console.log')) {
-          processedMessage = message.replace(/```/g, '```javascript');
+  const handleSend = useCallback(async () => {
+    if (messageInput.trim() && code && visitorId) {
+      try {
+        let processedMessage = messageInput;
+
+        // Auto-detect code language
+        if (messageInput.includes('```') && !messageInput.includes('```javascript') &&
+          !messageInput.includes('```js') && !messageInput.includes('```cpp')) {
+          if (messageInput.includes('function') || messageInput.includes('const') ||
+            messageInput.includes('let') || messageInput.includes('console.log')) {
+            processedMessage = messageInput.replace(/```/g, '```javascript');
+          }
         }
+
+        // Create temporary message
+        const tempId = Date.now();
+        setCurrentMessageId(tempId);
+        const tempMessage = {
+          content: processedMessage,
+          senderId: visitorId,
+          timestamp: new Date(),
+          tempId,
+          isOwn: true,
+          isReply: !!replyTo,
+          parentmessageContent: replyTo?.content || null
+        };
+
+        // Add temporary message immediately
+        // setMessages(prev => [...prev, tempMessage]);
+        setMessageInput('');
+        const currentReplyTo = replyTo;
+        setReplyTo(null);
+
+        // Send to API using store method
+        await sendMessage(
+          processedMessage,
+          visitorId,
+          code,
+          currentReplyTo ? currentReplyTo._id : null
+        );
+
+      } catch (err) {
+        console.error("Failed to send message:", err);
+        // Remove temporary message on error
+        setMessages(prev => prev.filter(msg => msg.tempId !== tempId));
+        setReplyTo(currentReplyTo);
       }
-      
-      const newMessage = {
-        id: messages.length + 1,
-        text: processedMessage,
-        sender: "You",
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isMe: true,
-        replyTo: replyTo ? {
-          id: replyTo.id,
-          text: replyTo.text,
-          sender: replyTo.sender
-        } : null
-      };
-      
-      setMessages([...messages, newMessage]);
-      setMessage('');
-      setReplyTo(null);
     }
-  };
+  }, [messageInput, code, visitorId, replyTo, sendMessage]);
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -157,38 +208,30 @@ That's awesome. I think our users will really appreciate the improvements.`,
     }
   };
 
-  // Function to truncate text for reply preview
   const truncateText = (text, maxLength = 30) => {
     if (!text) return '';
-    
-    // Remove code blocks for preview
     const cleanText = text.replace(/```[\s\S]*?```/g, '');
-    
     if (cleanText.length <= maxLength) return cleanText;
     return cleanText.substring(0, maxLength) + '...';
   };
 
-  // Function to parse message text and render code blocks with syntax highlighting
   const renderMessageWithCode = (text) => {
     if (!text) return null;
-    
-    // Split text by code blocks
+
     const parts = text.split(/(```[\s\S]*?```)/g);
-    
+
     return parts.map((part, index) => {
-      // Check if this part is a code block
       if (part.startsWith('```') && part.endsWith('```')) {
-        // Extract language and code
         const codeMatch = part.match(/```(\w+)?\s*([\s\S]*?)```/s);
         if (codeMatch) {
-          const language = codeMatch[1] || 'javascript'; // Default to JavaScript
+          const language = codeMatch[1] || 'javascript';
           const code = codeMatch[2].trim();
-          
+
           return (
             <div key={index} className="my-2 rounded-lg overflow-hidden bg-gray-900">
               <div className="flex justify-between items-center bg-gray-800 px-4 py-2 text-xs text-gray-300">
                 <span className="font-mono">{language}</span>
-                <button 
+                <button
                   onClick={() => handleCopy(code, `code-${index}`)}
                   className="flex items-center gap-1 text-xs hover:text-white transition-colors"
                   title="Copy code"
@@ -206,8 +249,7 @@ That's awesome. I think our users will really appreciate the improvements.`,
           );
         }
       }
-      
-      // Regular text - split by newlines and render each line
+
       const textLines = part.split('\n');
       return (
         <div key={index}>
@@ -221,83 +263,126 @@ That's awesome. I think our users will really appreciate the improvements.`,
     });
   };
 
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  if (!code) {
+    return (
+      <div className='bg-transparent w-[100%] fixed left-1/2 -translate-x-1/2 top-16 h-[92%] flex items-center justify-center '>
+        <div className="messageShow h-full bg-gray-800 w-[85%] border border-gray-700 rounded-lg p-4 flex items-center justify-center">
+          <div className="text-white text-lg">Invalid room code</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading && messages.length === 0) {
+    return (
+      <div className='bg-transparent w-[100%] fixed left-1/2 -translate-x-1/2 top-16 h-[92%] flex items-center justify-center '>
+        <div className="messageShow h-full bg-gray-800 w-[85%] border border-gray-700 rounded-lg p-4 flex items-center justify-center">
+          <div className="text-white text-lg">Loading messages...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className='bg-transparent w-[85%] fixed left-1/2 -translate-x-1/2 bottom-[1.5rem] h-[85%] flex items-center justify-center gap-8'>
+    <div className='bg-transparent w-[100%] fixed left-1/2 -translate-x-1/2 top-16 h-[92%] flex items-center justify-center '>
       <SidebarChat />
-      <div className="messageShow h-full bg-gray-800 w-[70%] border border-gray-700 rounded-lg p-4 flex flex-col items-center justify-center">
-        <div className="messageDivShow w-full flex-1 overflow-auto mb-4">
-          {messages.map((msg) => (
-            <div 
-              key={msg.id} 
-              className={`w-full mb-4 flex ${msg.isMe ? 'justify-end' : 'justify-start'} relative group`}
-              onMouseEnter={() => setHoveredMessage(msg.id)}
-              onMouseLeave={() => setHoveredMessage(null)}
-            >
-              {/* Action buttons for left-side messages (appear on right side on hover) */}
-              {!msg.isMe && (
-                <div className={`flex items-center gap-2 absolute right-0 top-1/2 -translate-y-1/2 transition-opacity duration-200 ${hoveredMessage === msg.id ? 'opacity-100' : 'opacity-0'}`}>
-                  <div 
-                    className="replyOption cursor-pointer text-white flex items-center justify-center bg-gray-700 rounded-full p-2 hover:bg-gray-600 transition-colors"
-                    onClick={() => handleReply(msg)}
-                    title="Reply"
-                  >
-                    <LuReplyAll className="text-xl" />
-                  </div>
-                  <div 
-                    className="copyButton cursor-pointer text-white flex items-center justify-center bg-gray-700 rounded-full p-2 hover:bg-gray-600 transition-colors"
-                    onClick={() => handleCopy(msg.text, msg.id)}
-                    title="Copy message"
-                  >
-                    {copiedMessageId === msg.id ? <MdDone className="text-xl text-green-500" /> : <TbCopy className="text-xl" />}
-                  </div>
-                </div>
-              )}
-              
-              <div className={`flex items-start gap-2.5 ${msg.isMe ? 'flex-row-reverse' : ''}`}>
-                <img className="w-8 h-8 rounded-full" src={profile} alt="Profile" />
-                <div className={`flex flex-col gap-1 max-w-[40rem] ${msg.isMe ? 'items-end' : ''}`}>
-                  <div className={`flex gap-2 items-center ${msg.isMe ? 'flex-row-reverse space-x-reverse' : 'space-x-2'} rtl:space-x-reverse`}>
-                    <span className="text-sm font-semibold text-gray-900 dark:text-white">{msg.sender}</span>
-                    <span className="text-sm font-normal text-gray-500 dark:text-gray-400">{msg.time}</span>
-                  </div>
-                  
-                  {/* Reply preview if this message is a reply */}
-                  {msg.replyTo && (
-                    <div className={`bg-gray-900/50 rounded-md p-2 text-xs max-w-full ${msg.isMe ? 'text-right' : 'text-left'}`}>
-                      <p className="text-gray-400 truncate">Replying to {msg.replyTo.sender}</p>
-                      <p className="text-gray-300 truncate">"{truncateText(msg.replyTo.text)}"</p>
+      <div className="messageShow h-full bg-gray-800 w-[85%] border border-gray-700 rounded-lg p-4 flex flex-col items-center justify-center">
+        {isLoading && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+          </div>
+        )}
+
+        <div className="messageDivShow w-full flex-1 overflow-auto mb-4 pr-4">
+          {messages.length === 0 ? (
+            <div className="text-gray-400 text-center py-8">
+              No messages yet. Start the conversation!
+            </div>
+          ) : (
+            messages.map((msg) => {
+              const messageId = msg._id || msg.tempId || msg.id;
+
+              return (
+                <div
+                  key={messageId}
+                  className={`w-full mb-4 flex ${msg.isOwn ? 'justify-end' : 'justify-start'} relative group`}
+                  onMouseEnter={() => setHoveredMessage(messageId)}
+                  onMouseLeave={() => setHoveredMessage(null)}
+                >
+                  {!msg.isOwn && (
+                    <div className={`flex items-center gap-2 absolute right-16 top-1/2 -translate-y-1/2 transition-opacity duration-200 ${hoveredMessage === messageId ? 'opacity-100' : 'opacity-0'}`}>
+                      <div
+                        className="replyOption cursor-pointer text-white flex items-center justify-center bg-gray-700 rounded-full p-2 hover:bg-gray-600 transition-colors"
+                        onClick={() => handleReply(msg)}
+                        title="Reply"
+                      >
+                        <LuReplyAll className="text-xl" />
+                      </div>
+                      <div
+                        className="copyButton cursor-pointer text-white flex items-center justify-center bg-gray-700 rounded-full p-2 hover:bg-gray-600 transition-colors"
+                        onClick={() => handleCopy(msg.content, messageId)}
+                        title="Copy message"
+                      >
+                        {copiedMessageId === messageId ? <MdDone className="text-xl text-green-500" /> : <TbCopy className="text-xl" />}
+                      </div>
                     </div>
                   )}
-                  
-                  <div className={`flex flex-col leading-1.5 p-4 border-gray-200 ${msg.isMe ? 'bg-blue-600 rounded-s-xl rounded-ee-xl' : 'bg-gray-700 rounded-e-xl rounded-es-xl'}`}>
-                    <div className={`text-sm font-normal ${msg.isMe ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
-                      {renderMessageWithCode(msg.text)}
+
+                  <div className={`flex items-start gap-2.5 ${msg.isOwn ? 'flex-row-reverse' : ''}`}>
+                    <div className="w-8 h-8 rounded-full text-white bg-gray-600 flex items-center justify-center">
+                      <FaUser />
+                    </div>
+                    <div className={`flex flex-col gap-1 max-w-[80%] ${msg.isOwn ? 'items-end' : ''}`}>
+                      <div className={`flex gap-2 items-center ${msg.isOwn ? 'flex-row-reverse space-x-reverse' : 'space-x-2'} rtl:space-x-reverse`}>
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                          {msg.isOwn ? "You" : `Anonymous`}
+                        </span>
+                        <span className="text-sm font-normal text-gray-500 dark:text-gray-400">{formatTime(msg.timestamp)}</span>
+                      </div>
+
+                      {msg.isReply && msg.parentmessageContent && (
+                        <div className={`bg-gray-900/50 rounded-md p-2 text-xs max-w-full ${msg.isOwn ? 'text-right' : 'text-left'}`}>
+                          <p className="text-gray-400 truncate">Replying to a message</p>
+                          <p className="text-gray-300 truncate">"{truncateText(msg.parentmessageContent)}"</p>
+                        </div>
+                      )}
+
+                      <div className={`flex flex-col leading-1.5 p-4 border-gray-200 ${msg.isOwn ? 'bg-blue-600 rounded-s-xl rounded-ee-xl' : 'bg-gray-700 rounded-e-xl rounded-es-xl'}`}>
+                        <div className={`text-sm font-normal ${msg.isOwn ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+                          {renderMessageWithCode(msg.content)}
+                        </div>
+                      </div>
                     </div>
                   </div>
+
+                  {msg.isOwn && (
+                    <div className={`flex items-center gap-2 absolute left-12 top-1/2 -translate-y-1/2 transition-opacity duration-200 ${hoveredMessage === messageId ? 'opacity-100' : 'opacity-0'}`}>
+                      <div
+                        className="replyOption cursor-pointer text-white flex items-center justify-center bg-gray-700 rounded-full p-2 hover:bg-gray-600 transition-colors"
+                        onClick={() => handleReply(msg)}
+                        title="Reply"
+                      >
+                        <LuReplyAll className="text-xl" />
+                      </div>
+                      <div
+                        className="copyButton cursor-pointer text-white flex items-center justify-center bg-gray-700 rounded-full p-2 hover:bg-gray-600 transition-colors"
+                        onClick={() => handleCopy(msg.content, messageId)}
+                        title="Copy message"
+                      >
+                        {copiedMessageId === messageId ? <MdDone className="text-xl text-green-500" /> : <TbCopy className="text-xl" />}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-              
-              {/* Action buttons for right-side messages (appear on left side on hover) */}
-              {msg.isMe && (
-                <div className={`flex items-center gap-2 absolute left-0 top-1/2 -translate-y-1/2 transition-opacity duration-200 ${hoveredMessage === msg.id ? 'opacity-100' : 'opacity-0'}`}>
-                  <div 
-                    className="replyOption cursor-pointer text-white flex items-center justify-center bg-gray-700 rounded-full p-2 hover:bg-gray-600 transition-colors"
-                    onClick={() => handleReply(msg)}
-                    title="Reply"
-                  >
-                    <LuReplyAll className="text-xl" />
-                  </div>
-                  <div 
-                    className="copyButton cursor-pointer text-white flex items-center justify-center bg-gray-700 rounded-full p-2 hover:bg-gray-600 transition-colors"
-                    onClick={() => handleCopy(msg.text, msg.id)}
-                    title="Copy message"
-                  >
-                    {copiedMessageId === msg.id ? <MdDone className="text-xl text-green-500" /> : <TbCopy className="text-xl" />}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+              );
+            })
+          )}
           <div ref={messagesEndRef} />
         </div>
 
@@ -307,40 +392,40 @@ That's awesome. I think our users will really appreciate the improvements.`,
               <RiGeminiFill />
             </button>
           </div>
-          
+
           <div className='flex-1 mx-4 my-2 flex flex-col'>
-            {/* Reply preview */}
             {replyTo && (
               <div className="bg-gray-900/70 rounded-md p-2 mb-2 text-xs relative">
                 <div className="flex justify-between items-center">
-                  <p className="text-gray-400">Replying to {replyTo.sender}</p>
-                  <button 
+                  <p className="text-gray-400">Replying to {replyTo.isOwn ? "You" : `User ${replyTo.senderId?.slice(0, 8)}`}</p>
+                  <button
                     onClick={cancelReply}
                     className="text-gray-400 hover:text-white"
                   >
                     <IoClose />
                   </button>
                 </div>
-                <p className="text-gray-300 truncate">"{truncateText(replyTo.text)}"</p>
+                <p className="text-gray-300 truncate">"{truncateText(replyTo.content)}"</p>
               </div>
             )}
-            
-            <textarea 
-              placeholder='Type your message...' 
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
+
+            <textarea
+              placeholder='Type your message...'
+              value={messageInput}
+              onChange={(e) => setMessageInput(e.target.value)}
               onKeyPress={handleKeyPress}
               className='w-full bg-transparent outline-none text-white resize-none'
-              autoFocus 
+              autoFocus
               rows={1}
+              disabled={isLoading}
             />
           </div>
-          
+
           <div className='h-[3rem] w-[3rem] bg-gray-600/50 rounded-full flex items-center justify-center'>
-            <button 
+            <button
               className='text-white text-2xl h-full w-full flex items-center justify-center cursor-pointer disabled:opacity-50'
               onClick={handleSend}
-              disabled={!message.trim()}
+              disabled={!messageInput.trim() || isLoading}
             >
               <IoSendSharp />
             </button>

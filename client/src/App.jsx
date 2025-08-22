@@ -6,21 +6,51 @@ import './App.css';
 import { Outlet } from 'react-router-dom';
 import Navbar from './components/Navbar'
 import fingerprintStore from "./store/fingerprintStore.js"
+import messageStore from "./store/messageStore.js"
 
 function App() {
   const { registerFingerprint, message, error, isLoading } = fingerprintStore();
+  const { setSocket } = messageStore();
+  const socketRef = useRef(null);
 
   useEffect(() => {
     const initializeApp = async () => {
 
       const fp = await FingerprintJS.load();
       const { visitorId } = await fp.get();
+      // console.log("Visitor ID:", visitorId);
 
       await registerFingerprint(visitorId);
+
+      socketRef.current = io(`${import.meta.env.VITE_CORS}`, {
+        extraHeaders: {
+          "fingerprint": visitorId
+        }
+      });
+
+      setSocket(socketRef.current);
+
+      socketRef.current.on("connect", () => {
+        // console.log("Connected with ID:", socketRef.current.id);
+      });
+
+      socketRef.current.on("connect_error", (err) => {
+        console.error("Connection error:", err);
+      });
+
+      socketRef.current.on('disconnect', () => {
+        // console.log('User disconnected:', socketRef.current.id);
+      });
 
     };
 
     initializeApp();
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
   }, []);
 
 

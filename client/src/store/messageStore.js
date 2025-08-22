@@ -5,10 +5,11 @@ const messageStore = create((set, get) => ({
     isLoading: false,
     error: null,
     message: null,
-    messages: [],
     currentRoomCode: null,
+    socket: null,
+    setSocket: (socket) => set({ socket }),
 
-    getMessages: async (code) => {
+    getMessages: async (code, setMessages, fingerprint) => {
         set({ isLoading: true, error: null, currentRoomCode: code });
         try {
             const response = await axios.get(
@@ -22,26 +23,27 @@ const messageStore = create((set, get) => ({
             );
 
             if (response.status === 200) {
-                const messages = response.data.data[0]?.messages || [];
-                set({ 
-                    isLoading: false, 
-                    messages: messages,
-                    currentRoomCode: code
-                });
-                return messages;
+                if (response.data.data && response.data.data[0]?.messages) {
+                    const formattedMessages = response.data.data[0].messages.map(msg => ({
+                        ...msg,
+                        isOwn: msg.senderId === fingerprint
+                    }));
+                    setMessages(formattedMessages);
+                }
+                set({ isLoading: false, currentRoomCode: code });
+                return response.data.data[0]?.messages || [];
             } else {
                 throw new Error("Failed to fetch messages");
             }
         } catch (error) {
-            set({ 
-                error: error.response?.data?.message || error.message, 
-                isLoading: false,
-                messages: []
+            set({
+                error: error.response?.data?.message || error.message,
+                isLoading: false
             });
             throw error;
         }
     },
-    
+
     sendMessage: async (content, senderId, roomCode, parentMessageId = null) => {
         set({ isLoading: true, error: null });
         try {
@@ -58,39 +60,21 @@ const messageStore = create((set, get) => ({
 
             if (response.status === 201) {
                 const newMessage = response.data.data;
-                
-                set((state) => ({
-                    isLoading: false,
-                    messages: [...state.messages, newMessage],
-                    message: "Message sent successfully"
-                }));
-                
+                set({ isLoading: false, message: "Message sent successfully" });
                 return newMessage;
             } else {
                 throw new Error("Failed to send message");
             }
         } catch (error) {
-            set({ 
-                error: error.response?.data?.message || error.message, 
-                isLoading: false 
+            set({
+                error: error.response?.data?.message || error.message,
+                isLoading: false
             });
             throw error;
         }
     },
 
-    addMessage: (newMessage) => {
-        set((state) => ({
-            messages: [...state.messages, newMessage]
-        }));
-    },
-    
-
-    clearMessages: () => set({ messages: [], currentRoomCode: null }),
-    
- 
     clearError: () => set({ error: null }),
-    
-
     clearMessage: () => set({ message: null })
 }));
 

@@ -107,6 +107,7 @@ const sendMessage = asyncHandler(async (req, res) => {
     ])
 
     room.participants.forEach(participant => {
+        console.log("Sending message to:", participant);
         const socketuserName = `${participant}-${room.code}`;
         io.to(socketuserName).emit("message", messagedata[0]);
     });

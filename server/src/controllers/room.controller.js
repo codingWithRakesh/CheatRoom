@@ -3,6 +3,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 import { Room } from "../models/room.model.js"
 import { io } from "../socket/socket.js";
+import { isValidObjectId } from "mongoose";
 
 const generateRoomCode = asyncHandler(async (req, res) => {
     let code;
@@ -36,8 +37,10 @@ const joinRoom = asyncHandler(async (req, res) => {
     }
     
     // Add user to room
-    room.participants.push(visitorId);
-    await room.save();
+    if(!room.participants.includes(visitorId)) {
+        room.participants.push(visitorId);
+        await room.save({ validateBeforeSave: true });
+    }
 
     return res.status(200).json(
         new ApiResponse(200, { code: room.code }, "Joined room successfully")
