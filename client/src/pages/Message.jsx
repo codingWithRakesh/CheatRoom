@@ -290,7 +290,7 @@ const Message = () => {
   }
 
   return (
-    <div className='bg-transparent w-[100%] fixed left-1/2 -translate-x-1/2 top-16 h-[calc(100vh-4rem)] flex items-center justify-center '>
+    <div className='bg-transparent w-[100%] fixed left-1/2 -translate-x-1/2 top-16 h-[92%] flex items-center justify-center '>
       {/* Hide SidebarChat on screens less than 1000px */}
       {/* <div className="hidden lg:block"> */}
         <SidebarChat />

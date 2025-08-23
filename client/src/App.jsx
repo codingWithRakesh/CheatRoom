@@ -7,6 +7,7 @@ import { Outlet } from 'react-router-dom';
 import Navbar from './components/Navbar'
 import fingerprintStore from "./store/fingerprintStore.js"
 import messageStore from "./store/messageStore.js"
+import Loading from './components/Loading.jsx';
 
 function App() {
   const { registerFingerprint, message, error, isLoading } = fingerprintStore();
@@ -55,7 +56,7 @@ function App() {
 
 
   if (isLoading) {
-    return <div className="container">Initializing...</div>;
+    return <Loading />;
   }
 
   if (error) {
