@@ -10,6 +10,11 @@ const fingerprintSchema = new Schema({
     lastSeen: {
         type: Date,
         default: Date.now
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+        expires: 1296000 // 15 days
     }
 }, { timestamps: true });
 

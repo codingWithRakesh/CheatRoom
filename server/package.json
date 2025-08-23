@@ -21,6 +21,7 @@
     "mongoose": "^8.17.1",
     "mongoose-aggregate-paginate-v2": "^1.1.4",
     "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
     "nodemailer": "^7.0.5",
     "nodemon": "^3.1.10",
     "socket.io": "^4.8.1"

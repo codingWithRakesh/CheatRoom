@@ -19,6 +19,11 @@ const messageSchema = new Schema({
         type: Date,
         default: Date.now
     },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+        expires: 864000 // 10 days
+    },
     parentMessageId: {
         type: Schema.Types.ObjectId,
         ref: 'Message'
