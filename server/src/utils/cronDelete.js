@@ -1,12 +1,13 @@
 import cron from "node-cron";
-import { Room } from '../models/room.model.js';
-import { Message } from '../models/message.model.js';
+import { Room } from "../models/room.model.js";
+import { Message } from "../models/message.model.js";
 
+// Run every day at midnight
 cron.schedule("0 0 * * *", async () => {
   try {
-    // Delete rooms older than 7 days
+    // 1) Delete expired Rooms manually (if you remove TTL)
     const expiredRooms = await Room.find({
-      createdAt: { $lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+      createdAt: { $lt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000) }
     });
 
     for (const room of expiredRooms) {
@@ -14,13 +15,16 @@ cron.schedule("0 0 * * *", async () => {
       await Room.deleteOne({ _id: room._id });
     }
 
-    // Delete messages older than 10 days (even if room is not deleted)
-    await Message.deleteMany({
-      createdAt: { $lt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000) }
-    });
+    // 2) Extra cleanup: remove orphan messages
+    const rooms = await Room.find().select("_id");
+    const roomIds = rooms.map(r => r._id);
+    await Message.deleteMany({ roomID: { $nin: roomIds } });
 
-    console.log("✅ Cron job cleanup completed");
+    if (expiredRooms.length > 0) {
+      console.log(`🗑 Deleted ${expiredRooms.length} rooms and their messages`);
+    }
+
   } catch (err) {
-    console.error("❌ Cron cleanup failed:", err);
+    console.error("Cron job error:", err);
   }
 });
