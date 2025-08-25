@@ -58,7 +58,7 @@ const Navbar = () => {
         </div>
       )}
 
-      {/* Right side - User icon and Exit button (on small screens) */}
+      {/* Right side - User icon and Exit button */}
       <div className='flex items-center gap-4'>
         {/* Exit button visible only at 1000px and below */}
         {code && (
@@ -70,7 +70,8 @@ const Navbar = () => {
             <span className="hidden xs:inline">Exit</span>
           </button>
         )}
-        <div className='flex items-center justify-center text-3xl cursor-pointer'>
+        {/* Profile icon - hidden on mobile, visible on tablet and laptop */}
+        <div className='hidden md:flex items-center justify-center text-3xl cursor-pointer'>
           <FaUserShield />
         </div>
       </div>
