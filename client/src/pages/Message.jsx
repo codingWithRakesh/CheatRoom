@@ -14,6 +14,7 @@ import cpp from 'highlight.js/lib/languages/cpp';
 import javascript from 'highlight.js/lib/languages/javascript';
 import fingerprintStore from '../store/fingerprintStore';
 import messageStore from '../store/messageStore';
+import ProfileColor from '../components/ProfileColor';
 
 hljs.registerLanguage('cpp', cpp);
 hljs.registerLanguage('javascript', javascript);
@@ -340,9 +341,7 @@ const Message = () => {
                   )}
 
                   <div className={`flex items-start gap-2.5 ${msg.isOwn ? 'flex-row-reverse' : ''}`}>
-                    <div className="w-8 h-8 rounded-full text-white bg-gray-600 flex items-center justify-center">
-                      <FaUser />
-                    </div>
+                    <ProfileColor userId={msg.senderId} />
                     <div className={`flex flex-col gap-1 max-w-[80%] ${msg.isOwn ? 'items-end' : ''}`}>
                       <div className={`flex gap-2 items-center ${msg.isOwn ? 'flex-row-reverse space-x-reverse' : 'space-x-2'} rtl:space-x-reverse`}>
                         <span className="text-sm font-semibold text-gray-900 dark:text-white">
