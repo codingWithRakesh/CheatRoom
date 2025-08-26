@@ -107,9 +107,11 @@ const sendMessage = asyncHandler(async (req, res) => {
     ])
 
     room.participants.forEach(participant => {
-        console.log("Sending message to:", participant);
-        const socketuserName = `${participant}-${room.code}`;
-        io.to(socketuserName).emit("message", messagedata[0]);
+        if (participant !== senderId) {
+            console.log("Sending message to:", participant);
+            const socketuserName = `${participant}-${room.code}`;
+            io.to(socketuserName).emit("message", messagedata[0]);
+        }
     });
 
     res.status(201).json(new ApiResponse(201, messagedata[0], "Message sent successfully"));

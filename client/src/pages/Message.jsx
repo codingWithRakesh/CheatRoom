@@ -27,7 +27,6 @@ const Message = () => {
   const [hoveredMessage, setHoveredMessage] = useState(null);
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
-  const [currentMessageId, setCurrentMessageId] = useState(null);
 
   // Get state and actions from messageStore
   const {
@@ -43,40 +42,31 @@ const Message = () => {
 
   const { visitorId } = fingerprintStore();
 
-  // Use a ref to track if we've joined the room
   const hasJoinedRoom = useRef(false);
 
-  // Initialize socket connection and join room
   useEffect(() => {
     if (!socket || !code || !visitorId || hasJoinedRoom.current) return;
 
-    // Join the room using the same format as your working example
     const socketUserName = `${visitorId}-${code}`;
-    console.log("Joining room:", socketUserName);
+    // console.log("Joining room:", socketUserName);
     socket.emit("join-room", socketUserName);
     hasJoinedRoom.current = true;
 
   }, []);
 
-  // Socket event listener for real-time messages
   useEffect(() => {
     if (!socket) return;
 
     const handleNewMessage = (messageData) => {
-      console.log("New message received:", messageData);
+      // console.log("New message received:", messageData);
 
-      // Check if message already exists
       const messageExists = messages.some(msg =>
         msg._id === messageData._id ||
         (msg.tempId && msg.tempId === messageData.tempId)
       );
 
       if (!messageExists) {
-        // Add the new message to local state
         setMessages(prev => {
-          // if (currentMessageId && messageData.tempId === currentMessageId) {
-          //   return prev;
-          // }
           return [...prev, {
             ...messageData,
             isOwn: messageData.senderId === visitorId
@@ -90,9 +80,9 @@ const Message = () => {
     return () => {
       socket.off("message", handleNewMessage);
     };
-  }, [socket, visitorId]); // Removed messages from dependencies
+  }, [socket, visitorId]);
 
-  // Fetch messages when component mounts or room changes
+
   useEffect(() => {
     if (code && visitorId) {
       getMessages(code, setMessages, visitorId).catch(err => {
@@ -101,7 +91,7 @@ const Message = () => {
     }
   }, [code, visitorId, getMessages]);
 
-  // Handle errors from store
+
   useEffect(() => {
     if (error) {
       alert(error);
@@ -109,17 +99,16 @@ const Message = () => {
     }
   }, [error, clearError]);
 
-  // Handle success messages from store
+
   useEffect(() => {
     if (message) {
-      console.log(message);
+      // console.log(message);
       clearMessage();
     }
   }, [message, clearMessage]);
 
-  // Initialize Highlight.js and scroll to bottom
+
   useEffect(() => {
-    // hljs.highlightAll();
     scrollToBottom();
 
     const timer = setTimeout(() => {
@@ -168,7 +157,6 @@ const Message = () => {
 
         // Create temporary message
         const tempId = Date.now();
-        setCurrentMessageId(tempId);
         const tempMessage = {
           content: processedMessage,
           senderId: visitorId,
@@ -180,24 +168,26 @@ const Message = () => {
         };
 
         // Add temporary message immediately
-        // setMessages(prev => [...prev, tempMessage]);
+        setMessages(prev => [...prev, tempMessage]);
         setMessageInput('');
         const currentReplyTo = replyTo;
         setReplyTo(null);
 
-        // Send to API using store method
-        await sendMessage(
+        // Send to API using store method - don't wait for response
+        sendMessage(
           processedMessage,
           visitorId,
           code,
           currentReplyTo ? currentReplyTo._id : null
-        );
+        ).catch(err => {
+          console.error("Failed to send message:", err);
+          // Remove temporary message on error
+          setMessages(prev => prev.filter(msg => msg.tempId !== tempId));
+          setReplyTo(currentReplyTo);
+        });
 
       } catch (err) {
         console.error("Failed to send message:", err);
-        // Remove temporary message on error
-        setMessages(prev => prev.filter(msg => msg.tempId !== tempId));
-        setReplyTo(currentReplyTo);
       }
     }
   }, [messageInput, code, visitorId, replyTo, sendMessage]);
@@ -299,7 +289,8 @@ const Message = () => {
       
       {/* Make chat area full width on small screens */}
       <div className="messageShow h-full bg-gray-800 lg:w-[85%] w-full border border-gray-700 rounded-lg p-4 flex flex-col items-center justify-center">
-        {isLoading && (
+        {/* Only show loading for initial load, not for sending messages */}
+        {isLoading && messages.length === 0 && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
           </div>
@@ -312,7 +303,7 @@ const Message = () => {
             </div>
           ) : (
             messages.map((msg) => {
-              const messageId = msg._id || msg.tempId || msg.id;
+              const messageId = msg._id || msg.tempId;
 
               return (
                 <div
@@ -421,7 +412,6 @@ const Message = () => {
               className='w-full bg-transparent outline-none text-white resize-none'
               autoFocus
               rows={1}
-              disabled={isLoading}
             />
           </div>
 
@@ -429,7 +419,7 @@ const Message = () => {
             <button
               className='text-white text-2xl h-full w-full flex items-center justify-center cursor-pointer disabled:opacity-50'
               onClick={handleSend}
-              disabled={!messageInput.trim() || isLoading}
+              disabled={!messageInput.trim()}
             >
               <IoSendSharp />
             </button>
