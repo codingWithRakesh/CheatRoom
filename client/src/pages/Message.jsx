@@ -6,7 +6,7 @@ import { RiGeminiFill } from "react-icons/ri";
 import { IoSendSharp } from "react-icons/io5";
 import { LuReplyAll } from "react-icons/lu";
 import { IoClose } from "react-icons/io5";
-import { FaUser } from 'react-icons/fa6';
+import { FaUser, FaRobot } from 'react-icons/fa6';
 import { useParams } from 'react-router-dom';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
@@ -26,6 +26,7 @@ const Message = () => {
   const [messageInput, setMessageInput] = useState('');
   const [hoveredMessage, setHoveredMessage] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [isAIEnabled, setIsAIEnabled] = useState(false);
   const messagesEndRef = useRef(null);
 
   // Get state and actions from messageStore
@@ -48,7 +49,6 @@ const Message = () => {
     if (!socket || !code || !visitorId || hasJoinedRoom.current) return;
 
     const socketUserName = `${visitorId}-${code}`;
-    // console.log("Joining room:", socketUserName);
     socket.emit("join-room", socketUserName);
     hasJoinedRoom.current = true;
 
@@ -58,8 +58,6 @@ const Message = () => {
     if (!socket) return;
 
     const handleNewMessage = (messageData) => {
-      // console.log("New message received:", messageData);
-
       const messageExists = messages.some(msg =>
         msg._id === messageData._id ||
         (msg.tempId && msg.tempId === messageData.tempId)
@@ -102,7 +100,6 @@ const Message = () => {
 
   useEffect(() => {
     if (message) {
-      // console.log(message);
       clearMessage();
     }
   }, [message, clearMessage]);
@@ -164,7 +161,8 @@ const Message = () => {
           tempId,
           isOwn: true,
           isReply: !!replyTo,
-          parentmessageContent: replyTo?.content || null
+          parentmessageContent: replyTo?.content || null,
+          isAI: isAIEnabled
         };
 
         // Add temporary message immediately
@@ -178,7 +176,8 @@ const Message = () => {
           processedMessage,
           visitorId,
           code,
-          currentReplyTo ? currentReplyTo._id : null
+          currentReplyTo ? currentReplyTo._id : null,
+          isAIEnabled
         ).catch(err => {
           console.error("Failed to send message:", err);
           // Remove temporary message on error
@@ -186,11 +185,14 @@ const Message = () => {
           setReplyTo(currentReplyTo);
         });
 
+        // Reset AI toggle after sending
+        setIsAIEnabled(false);
+
       } catch (err) {
         console.error("Failed to send message:", err);
       }
     }
-  }, [messageInput, code, visitorId, replyTo, sendMessage]);
+  }, [messageInput, code, visitorId, replyTo, sendMessage, isAIEnabled]);
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -282,14 +284,9 @@ const Message = () => {
 
   return (
     <div className='bg-transparent w-[100%] fixed left-1/2 -translate-x-1/2 top-16 h-[92%] flex items-center justify-center '>
-      {/* Hide SidebarChat on screens less than 1000px */}
-      {/* <div className="hidden lg:block"> */}
-        <SidebarChat />
-      {/* </div> */}
+      <SidebarChat />
       
-      {/* Make chat area full width on small screens */}
       <div className="messageShow h-full bg-gray-800 lg:w-[85%] w-full border border-gray-700 rounded-lg p-4 flex flex-col items-center justify-center">
-        {/* Only show loading for initial load, not for sending messages */}
         {isLoading && messages.length === 0 && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
@@ -332,11 +329,16 @@ const Message = () => {
                   )}
 
                   <div className={`flex items-start gap-2.5 ${msg.isOwn ? 'flex-row-reverse' : ''}`}>
-                    <ProfileColor userId={msg.senderId} />
+                    <ProfileColor userId={msg.senderId} isAI={msg.isAI} />
                     <div className={`flex flex-col gap-1 max-w-[80%] ${msg.isOwn ? 'items-end' : ''}`}>
                       <div className={`flex gap-2 items-center ${msg.isOwn ? 'flex-row-reverse space-x-reverse' : 'space-x-2'} rtl:space-x-reverse`}>
                         <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                          {msg.isOwn ? "You" : `Anonymous`}
+                          {msg.isAI ? (
+                            <span className="flex items-center gap-1 text-blue-400">
+                              <FaRobot className="text-blue-400" />
+                              AI Assistant
+                            </span>
+                          ) : msg.isOwn ? "You" : `Anonymous`}
                         </span>
                         <span className="text-sm font-normal text-gray-500 dark:text-gray-400">{formatTime(msg.timestamp)}</span>
                       </div>
@@ -348,8 +350,8 @@ const Message = () => {
                         </div>
                       )}
 
-                      <div className={`flex flex-col leading-1.5 p-4 border-gray-200 ${msg.isOwn ? 'bg-blue-600 rounded-s-xl rounded-ee-xl' : 'bg-gray-700 rounded-e-xl rounded-es-xl'}`}>
-                        <div className={`text-sm font-normal ${msg.isOwn ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+                      <div className={`flex flex-col leading-1.5 p-4 border-gray-200 ${msg.isOwn ? 'bg-blue-600 rounded-s-xl rounded-ee-xl' : msg.isAI ? 'bg-blue-900/30 rounded-e-xl rounded-es-xl' : 'bg-gray-700 rounded-e-xl rounded-es-xl'}`}>
+                        <div className={`text-sm font-normal ${msg.isOwn ? 'text-white' : msg.isAI ? 'text-blue-100' : 'text-gray-900 dark:text-white'}`}>
                           {renderMessageWithCode(msg.content)}
                         </div>
                       </div>
@@ -382,11 +384,17 @@ const Message = () => {
         </div>
 
         <div className="inputCChat w-[99%] min-h-[5rem] bg-gray-700/50 rounded-lg flex items-center justify-between px-4 py-2">
-          <div className='h-[3rem] w-[3rem] bg-gray-600/50 rounded-full flex items-center justify-center'>
-            <button className='text-white text-2xl h-full w-full flex items-center justify-center cursor-pointer'>
-              <RiGeminiFill />
-            </button>
-          </div>
+          <button
+            className={`h-[3rem] w-[3rem] rounded-full flex items-center justify-center cursor-pointer transition-colors ${
+              isAIEnabled 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-600/50 text-gray-400 hover:bg-gray-600'
+            }`}
+            onClick={() => setIsAIEnabled(!isAIEnabled)}
+            title={isAIEnabled ? "AI mode enabled" : "Enable AI mode"}
+          >
+            <RiGeminiFill className="text-2xl" />
+          </button>
 
           <div className='flex-1 mx-4 my-2 flex flex-col'>
             {replyTo && (
@@ -404,15 +412,22 @@ const Message = () => {
               </div>
             )}
 
-            <textarea
-              placeholder='Type your message...'
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className='w-full bg-transparent outline-none text-white resize-none'
-              autoFocus
-              rows={1}
-            />
+            <div className="flex items-center">
+              {isAIEnabled && (
+                <span className="text-xs text-blue-400 mr-2 bg-blue-900/30 px-2 py-1 rounded">
+                  AI Mode
+                </span>
+              )}
+              <textarea
+                placeholder={isAIEnabled ? "Ask AI a question..." : "Type your message..."}
+                value={messageInput}
+                onChange={(e) => setMessageInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className='w-full bg-transparent outline-none text-white resize-none'
+                autoFocus
+                rows={1}
+              />
+            </div>
           </div>
 
           <div className='h-[3rem] w-[3rem] bg-gray-600/50 rounded-full flex items-center justify-center'>

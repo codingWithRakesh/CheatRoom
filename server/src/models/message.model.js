@@ -19,6 +19,10 @@ const messageSchema = new Schema({
     type: Date,
     default: Date.now
   },
+  isAI: {
+    type: Boolean,
+    default: false
+  },
   parentMessageId: {
     type: Schema.Types.ObjectId,
     ref: 'Message'

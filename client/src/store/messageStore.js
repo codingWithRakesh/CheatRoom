@@ -44,12 +44,12 @@ const messageStore = create((set, get) => ({
         }
     },
 
-    sendMessage: async (content, senderId, roomCode, parentMessageId = null) => {
+    sendMessage: async (content, senderId, roomCode, parentMessageId = null, isAI = false) => {
         set({ isLoading: true, error: null });
         try {
             const response = await axios.post(
                 `${import.meta.env.VITE_BACKEND_URL}/message/sendMessage`,
-                { content, senderId, roomCode, parentMessageId },
+                { content, senderId, roomCode, parentMessageId, isAI },
                 {
                     headers: {
                         "Content-Type": "application/json",
