@@ -15,6 +15,8 @@ import javascript from 'highlight.js/lib/languages/javascript';
 import fingerprintStore from '../store/fingerprintStore';
 import messageStore from '../store/messageStore';
 import ProfileColor from '../components/ProfileColor';
+import MessageInput from '../components/MessageInput';
+import MessageShow from '../components/MessageShow';
 
 hljs.registerLanguage('cpp', cpp);
 hljs.registerLanguage('javascript', javascript);
@@ -293,153 +295,32 @@ const Message = () => {
           </div>
         )}
 
-        <div className="messageDivShow w-full flex-1 overflow-auto mb-4 pr-4">
-          {messages.length === 0 ? (
-            <div className="text-gray-400 text-center py-8">
-              No messages yet. Start the conversation!
-            </div>
-          ) : (
-            messages.map((msg) => {
-              const messageId = msg._id || msg.tempId;
 
-              return (
-                <div
-                  key={messageId}
-                  className={`w-full mb-4 flex ${msg.isOwn ? 'justify-end' : 'justify-start'} relative group`}
-                  onMouseEnter={() => setHoveredMessage(messageId)}
-                  onMouseLeave={() => setHoveredMessage(null)}
-                >
-                  {!msg.isOwn && (
-                    <div className={`flex items-center gap-2 absolute right-16 top-1/2 -translate-y-1/2 transition-opacity duration-200 ${hoveredMessage === messageId ? 'opacity-100' : 'opacity-0'}`}>
-                      <div
-                        className="replyOption cursor-pointer text-white flex items-center justify-center bg-gray-700 rounded-full p-2 hover:bg-gray-600 transition-colors"
-                        onClick={() => handleReply(msg)}
-                        title="Reply"
-                      >
-                        <LuReplyAll className="text-xl" />
-                      </div>
-                      <div
-                        className="copyButton cursor-pointer text-white flex items-center justify-center bg-gray-700 rounded-full p-2 hover:bg-gray-600 transition-colors"
-                        onClick={() => handleCopy(msg.content, messageId)}
-                        title="Copy message"
-                      >
-                        {copiedMessageId === messageId ? <MdDone className="text-xl text-green-500" /> : <TbCopy className="text-xl" />}
-                      </div>
-                    </div>
-                  )}
+        <MessageShow
+          messages={messages}
+          hoveredMessage={hoveredMessage}
+          setHoveredMessage={setHoveredMessage}
+          handleReply={handleReply}
+          handleCopy={handleCopy}
+          copiedMessageId={copiedMessageId}
+          messagesEndRef={messagesEndRef}
+          formatTime={formatTime}
+          renderMessageWithCode={renderMessageWithCode}
+          truncateText={truncateText}
+        />
 
-                  <div className={`flex items-start gap-2.5 ${msg.isOwn ? 'flex-row-reverse' : ''}`}>
-                    <ProfileColor userId={msg.senderId} isAI={msg.isAI} />
-                    <div className={`flex flex-col gap-1 max-w-[80%] ${msg.isOwn ? 'items-end' : ''}`}>
-                      <div className={`flex gap-2 items-center ${msg.isOwn ? 'flex-row-reverse space-x-reverse' : 'space-x-2'} rtl:space-x-reverse`}>
-                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                          {msg.isAI ? (
-                            <span className="flex items-center gap-1 text-blue-400">
-                              <FaRobot className="text-blue-400" />
-                              AI Assistant
-                            </span>
-                          ) : msg.isOwn ? "You" : `Anonymous`}
-                        </span>
-                        <span className="text-sm font-normal text-gray-500 dark:text-gray-400">{formatTime(msg.timestamp)}</span>
-                      </div>
+        <MessageInput
+          isAIEnabled={isAIEnabled}
+          setIsAIEnabled={setIsAIEnabled}
+          replyTo={replyTo}
+          cancelReply={cancelReply}
+          messageInput={messageInput}
+          setMessageInput={setMessageInput}
+          handleKeyPress={handleKeyPress}
+          handleSend={handleSend}
+          truncateText={truncateText}
+        />
 
-                      {msg.isReply && msg.parentmessageContent && (
-                        <div className={`bg-gray-900/50 rounded-md p-2 text-xs max-w-full ${msg.isOwn ? 'text-right' : 'text-left'}`}>
-                          <p className="text-gray-400 truncate">Replying to a message</p>
-                          <p className="text-gray-300 truncate">"{truncateText(msg.parentmessageContent)}"</p>
-                        </div>
-                      )}
-
-                      <div className={`flex flex-col leading-1.5 p-4 border-gray-200 ${msg.isOwn ? 'bg-blue-600 rounded-s-xl rounded-ee-xl' : msg.isAI ? 'bg-blue-900/30 rounded-e-xl rounded-es-xl' : 'bg-gray-700 rounded-e-xl rounded-es-xl'}`}>
-                        <div className={`text-sm font-normal ${msg.isOwn ? 'text-white' : msg.isAI ? 'text-blue-100' : 'text-gray-900 dark:text-white'}`}>
-                          {renderMessageWithCode(msg.content)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {msg.isOwn && (
-                    <div className={`flex items-center gap-2 absolute left-12 top-1/2 -translate-y-1/2 transition-opacity duration-200 ${hoveredMessage === messageId ? 'opacity-100' : 'opacity-0'}`}>
-                      <div
-                        className="replyOption cursor-pointer text-white flex items-center justify-center bg-gray-700 rounded-full p-2 hover:bg-gray-600 transition-colors"
-                        onClick={() => handleReply(msg)}
-                        title="Reply"
-                      >
-                        <LuReplyAll className="text-xl" />
-                      </div>
-                      <div
-                        className="copyButton cursor-pointer text-white flex items-center justify-center bg-gray-700 rounded-full p-2 hover:bg-gray-600 transition-colors"
-                        onClick={() => handleCopy(msg.content, messageId)}
-                        title="Copy message"
-                      >
-                        {copiedMessageId === messageId ? <MdDone className="text-xl text-green-500" /> : <TbCopy className="text-xl" />}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        <div className="inputCChat w-[99%] min-h-[5rem] bg-gray-700/50 rounded-lg flex items-center justify-between px-4 py-2">
-          <button
-            className={`h-[3rem] w-[3rem] rounded-full flex items-center justify-center cursor-pointer transition-colors ${
-              isAIEnabled 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-600/50 text-gray-400 hover:bg-gray-600'
-            }`}
-            onClick={() => setIsAIEnabled(!isAIEnabled)}
-            title={isAIEnabled ? "AI mode enabled" : "Enable AI mode"}
-          >
-            <RiGeminiFill className="text-2xl" />
-          </button>
-
-          <div className='flex-1 mx-4 my-2 flex flex-col'>
-            {replyTo && (
-              <div className="bg-gray-900/70 rounded-md p-2 mb-2 text-xs relative">
-                <div className="flex justify-between items-center">
-                  <p className="text-gray-400">Replying to {replyTo.isOwn ? "You" : `User ${replyTo.senderId?.slice(0, 8)}`}</p>
-                  <button
-                    onClick={cancelReply}
-                    className="text-gray-400 hover:text-white"
-                  >
-                    <IoClose />
-                  </button>
-                </div>
-                <p className="text-gray-300 truncate">"{truncateText(replyTo.content)}"</p>
-              </div>
-            )}
-
-            <div className="flex items-center">
-              {isAIEnabled && (
-                <span className="text-xs text-blue-400 mr-2 bg-blue-900/30 px-2 py-1 rounded">
-                  AI Mode
-                </span>
-              )}
-              <textarea
-                placeholder={isAIEnabled ? "Ask AI a question..." : "Type your message..."}
-                value={messageInput}
-                onChange={(e) => setMessageInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className='w-full bg-transparent outline-none text-white resize-none'
-                autoFocus
-                rows={1}
-              />
-            </div>
-          </div>
-
-          <div className='h-[3rem] w-[3rem] bg-gray-600/50 rounded-full flex items-center justify-center'>
-            <button
-              className='text-white text-2xl h-full w-full flex items-center justify-center cursor-pointer disabled:opacity-50'
-              onClick={handleSend}
-              disabled={!messageInput.trim()}
-            >
-              <IoSendSharp />
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
