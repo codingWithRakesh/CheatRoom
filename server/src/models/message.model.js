@@ -15,6 +15,19 @@ const messageSchema = new Schema({
     type: String,
     required: true
   },
+  isFile: {
+    type: Boolean,
+    default: false
+  },
+  fileName: {
+    type: String,
+  },
+  fileType: {
+    type: String,
+  },
+  fileId: {
+    type: String,
+  },
   timestamp: {
     type: Date,
     default: Date.now

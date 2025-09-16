@@ -1,20 +1,64 @@
-import React from 'react'
-import { IoClose, IoSendSharp } from 'react-icons/io5'
+import React, { useRef } from 'react'
+import { IoClose, IoSendSharp, IoAttach } from 'react-icons/io5'
 import { RiGeminiFill } from 'react-icons/ri'
 
-const MessageInput = ({ isAIEnabled, setIsAIEnabled, replyTo, cancelReply, messageInput, setMessageInput, handleKeyPress, handleSend, truncateText }) => {
+const MessageInput = ({ 
+    isAIEnabled, 
+    setIsAIEnabled, 
+    replyTo, 
+    cancelReply, 
+    messageInput, 
+    setMessageInput, 
+    handleKeyPress, 
+    handleSend, 
+    truncateText,
+    onFileUpload 
+}) => {
+    const fileInputRef = useRef(null);
+
+    const handleFileSelect = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            onFileUpload(file);
+        }
+        // Reset the input
+        event.target.value = '';
+    };
+
+    const triggerFileInput = () => {
+        fileInputRef.current?.click();
+    };
+
     return (
         <div className="inputCChat w-[99%] min-h-[5rem] bg-gray-700/50 rounded-lg flex items-center justify-between px-4 py-2">
-            <button
-                className={`h-[3rem] w-[3rem] rounded-full flex items-center justify-center cursor-pointer transition-colors ${isAIEnabled
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-600/50 text-gray-400 hover:bg-gray-600'
-                    }`}
-                onClick={() => setIsAIEnabled(!isAIEnabled)}
-                title={isAIEnabled ? "AI mode enabled" : "Enable AI mode"}
-            >
-                <RiGeminiFill className="text-2xl" />
-            </button>
+            <div className="flex items-center gap-2">
+                <button
+                    className={`h-[3rem] w-[3rem] rounded-full flex items-center justify-center cursor-pointer transition-colors ${isAIEnabled
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-600/50 text-gray-400 hover:bg-gray-600'
+                        }`}
+                    onClick={() => setIsAIEnabled(!isAIEnabled)}
+                    title={isAIEnabled ? "AI mode enabled" : "Enable AI mode"}
+                >
+                    <RiGeminiFill className="text-2xl" />
+                </button>
+
+                <button
+                    className="h-[3rem] w-[3rem] rounded-full flex items-center justify-center bg-gray-600/50 text-gray-400 hover:bg-gray-600 cursor-pointer transition-colors"
+                    onClick={triggerFileInput}
+                    title="Upload file"
+                >
+                    <IoAttach className="text-2xl" />
+                </button>
+
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.rtf"
+                />
+            </div>
 
             <div className='flex-1 mx-4 my-2 flex flex-col'>
                 {replyTo && (

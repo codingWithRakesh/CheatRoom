@@ -39,6 +39,7 @@ const Message = () => {
     socket,
     getMessages,
     sendMessage,
+    sendFile,
     clearError,
     clearMessage
   } = messageStore();
@@ -196,6 +197,43 @@ const Message = () => {
     }
   }, [messageInput, code, visitorId, replyTo, sendMessage, isAIEnabled]);
 
+  const handleFileUpload = async (file) => {
+    if (!code || !visitorId) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('senderId', visitorId);
+      formData.append('roomCode', code);
+
+      // Create temporary message
+      const tempId = Date.now();
+      const tempMessage = {
+        content: URL.createObjectURL(file), // Local preview
+        senderId: visitorId,
+        timestamp: new Date(),
+        tempId,
+        isOwn: true,
+        isFile: true,
+        fileName: file.name,
+        fileType: file.type,
+        size: file.size
+      };
+
+      // Add temporary message immediately
+      setMessages(prev => [...prev, tempMessage]);
+
+      // Send to API using store method
+      await sendFile(formData);
+
+    } catch (err) {
+      console.error("Failed to upload file:", err);
+      // Remove temporary message on error
+      setMessages(prev => prev.filter(msg => msg.tempId !== tempId));
+      alert(err.response?.data?.message || "Failed to upload file");
+    }
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -287,7 +325,7 @@ const Message = () => {
   return (
     <div className='bg-transparent w-[100%] fixed left-1/2 -translate-x-1/2 top-16 h-[92%] flex items-center justify-center '>
       <SidebarChat />
-      
+
       <div className="messageShow h-full bg-gray-800 lg:w-[85%] w-full border border-gray-700 rounded-lg p-4 flex flex-col items-center justify-center">
         {isLoading && messages.length === 0 && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
@@ -319,6 +357,7 @@ const Message = () => {
           handleKeyPress={handleKeyPress}
           handleSend={handleSend}
           truncateText={truncateText}
+          onFileUpload={handleFileUpload}
         />
 
       </div>

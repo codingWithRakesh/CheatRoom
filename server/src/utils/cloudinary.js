@@ -8,32 +8,35 @@ cloudinary.config({
     secure: true,
 });
 
-const uploadOnCloudinary = async (base64Image) => {
+const uploadOnCloudinary = async (base64File, type = "auto") => {
     try {
-        if(!base64Image) return null
-        const result = await cloudinary.uploader.upload(base64Image, {
-            resource_type : 'auto', // Change folder as needed
-          });      
-
+        if (!base64File) return null
+        const result = await cloudinary.uploader.upload(base64File, {
+            resource_type: type,
+        });
+        console.log("successfully uploaded");
         return result;
     } catch (error) {
-
+        console.error("Error uploading to Cloudinary:", error);
         return null;
     }
 };
 
 const getPublicId = (url) => {
+    if (!url) return null;
     const parts = url.split("/")
-    const publicIdEx = parts[parts.length -1]
+    const publicIdEx = parts[parts.length - 1]
     const publicId = publicIdEx.split(".")[0]
     return publicId
 }
 
-const deleteFromCloudinary = async (publicId) => {
+const deleteFromCloudinary = async (publicId, type = "image") => {
     try {
-        if(!publicId) return null
-        const result = await cloudinary.uploader.destroy(publicId);
-        console.log("successfully upload")
+        if (!publicId) return null
+        const result = await cloudinary.uploader.destroy(publicId, {
+            resource_type: type,
+        });
+        console.log("successfully deleted");
         return result;
     } catch (error) {
         console.error('Error deleting from Cloudinary:', error);

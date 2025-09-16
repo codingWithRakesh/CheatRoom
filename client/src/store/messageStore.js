@@ -74,6 +74,36 @@ const messageStore = create((set, get) => ({
         }
     },
 
+    sendFile : async (formData) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axios.post(
+                `${import.meta.env.VITE_BACKEND_URL}/message/upload`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    }
+                }
+            );
+
+            if (response.status === 200) {
+                const newMessage = response.data.data;
+                console.log("File uploaded successfully:", newMessage);
+                set({ isLoading: false, message: "File uploaded successfully" });
+                return newMessage;
+            } else {
+                throw new Error("Failed to upload file");
+            }
+        } catch (error) {
+            set({
+                error: error.response?.data?.message || error.message,
+                isLoading: false
+            });
+            throw error;
+        }
+    },
+
     clearError: () => set({ error: null }),
     clearMessage: () => set({ message: null })
 }));
