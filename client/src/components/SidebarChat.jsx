@@ -22,14 +22,13 @@ const SidebarChat = () => {
     
     const handleExit = async () => {
         await exitRoom(code, visitorId);
-        navigate('/'); // Navigate to home or another route
+        navigate('/');
     };
     
     return (
         <div className="hidden lg:flex h-full bg-gray-800 w-[25%] border border-gray-700 rounded-lg px-8 py-12 flex-col items-center justify-between">
             <div className="flex flex-col items-center">
                 <div className="imageDiv h-[12rem] w-[12rem] overflow-hidden rounded-full mb-4">
-                    {/* <img className='h-full w-full object-cover' src={profile} alt="" /> */}
                     <img className='h-full w-full object-cover' src="https://picsum.photos/800/600" alt="" />
                 </div>
                 <div className="showCode flex items-center gap-3 mt-2 w-full max-w-xs">

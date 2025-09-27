@@ -14,6 +14,8 @@ import cpp from 'highlight.js/lib/languages/cpp';
 import javascript from 'highlight.js/lib/languages/javascript';
 import fingerprintStore from '../store/fingerprintStore';
 import messageStore from '../store/messageStore';
+import roomStore from '../store/roomStore.js';
+import CryptoUtils from '../utils/cryptoUtils.js';
 import ProfileColor from '../components/ProfileColor';
 import MessageInput from '../components/MessageInput';
 import MessageShow from '../components/MessageShow';
@@ -29,9 +31,9 @@ const Message = () => {
   const [hoveredMessage, setHoveredMessage] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isAIEnabled, setIsAIEnabled] = useState(false);
+  const [isEncryptionReady, setIsEncryptionReady] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Get state and actions from messageStore
   const {
     isLoading,
     error,
@@ -41,12 +43,33 @@ const Message = () => {
     sendMessage,
     sendFile,
     clearError,
-    clearMessage
+    clearMessage,
+    processIncomingMessage
   } = messageStore();
 
   const { visitorId } = fingerprintStore();
+  const { getRoomPublicKey, getRoomPrivateKey } = roomStore();
 
   const hasJoinedRoom = useRef(false);
+
+
+  useEffect(() => {
+    const initializeEncryption = async () => {
+      if (!code) return;
+      
+      try {
+        await getRoomPublicKey(code);
+        await getRoomPrivateKey(code);
+        setIsEncryptionReady(true);
+        // console.log("Encryption initialized for room:", code);
+      } catch (error) {
+        console.error("Failed to initialize encryption:", error);
+        setIsEncryptionReady(true);
+      }
+    };
+
+    initializeEncryption();
+  }, [code, getRoomPublicKey, getRoomPrivateKey]);
 
   useEffect(() => {
     if (!socket || !code || !visitorId || hasJoinedRoom.current) return;
@@ -54,25 +77,48 @@ const Message = () => {
     const socketUserName = `${visitorId}-${code}`;
     socket.emit("join-room", socketUserName);
     hasJoinedRoom.current = true;
-
-  }, []);
+  }, [socket, code, visitorId]);
 
   useEffect(() => {
     if (!socket) return;
 
-    const handleNewMessage = (messageData) => {
+    const handleNewMessage = async (messageData) => {
       const messageExists = messages.some(msg =>
         msg._id === messageData._id ||
         (msg.tempId && msg.tempId === messageData.tempId)
       );
 
       if (!messageExists) {
-        setMessages(prev => {
-          return [...prev, {
+        try {
+          let processedMessage = {
             ...messageData,
             isOwn: messageData.senderId === visitorId
-          }]
-        });
+          };
+
+          if (!messageData.isFile && !messageData.isAI && isEncryptionReady) {
+            try {
+              processedMessage = await processIncomingMessage(messageData, code, visitorId);
+            } catch (decryptError) {
+              console.error("Failed to decrypt real-time message:", decryptError);
+              processedMessage = {
+                ...messageData,
+                isOwn: messageData.senderId === visitorId,
+                decryptionError: true,
+                content: "[Encrypted message - decryption failed]"
+              };
+            }
+          }
+
+          setMessages(prev => {
+            return [...prev, processedMessage];
+          });
+        } catch (error) {
+          console.error("Error processing incoming message:", error);
+          setMessages(prev => [...prev, {
+            ...messageData,
+            isOwn: messageData.senderId === visitorId
+          }]);
+        }
       }
     };
 
@@ -81,17 +127,15 @@ const Message = () => {
     return () => {
       socket.off("message", handleNewMessage);
     };
-  }, [socket, visitorId]);
-
+  }, [socket, visitorId, code, messages, isEncryptionReady, processIncomingMessage]);
 
   useEffect(() => {
-    if (code && visitorId) {
+    if (code && visitorId && isEncryptionReady) {
       getMessages(code, setMessages, visitorId).catch(err => {
         console.error("Error fetching messages:", err);
       });
     }
-  }, [code, visitorId, getMessages]);
-
+  }, [code, visitorId, getMessages, isEncryptionReady]);
 
   useEffect(() => {
     if (error) {
@@ -100,13 +144,11 @@ const Message = () => {
     }
   }, [error, clearError]);
 
-
   useEffect(() => {
     if (message) {
       clearMessage();
     }
   }, [message, clearMessage]);
-
 
   useEffect(() => {
     scrollToBottom();
@@ -155,7 +197,6 @@ const Message = () => {
           }
         }
 
-        // Create temporary message
         const tempId = Date.now();
         const tempMessage = {
           content: processedMessage,
@@ -168,13 +209,11 @@ const Message = () => {
           isAI: isAIEnabled
         };
 
-        // Add temporary message immediately
         setMessages(prev => [...prev, tempMessage]);
         setMessageInput('');
         const currentReplyTo = replyTo;
         setReplyTo(null);
 
-        // Send to API using store method - don't wait for response
         sendMessage(
           processedMessage,
           visitorId,
@@ -183,12 +222,10 @@ const Message = () => {
           isAIEnabled
         ).catch(err => {
           console.error("Failed to send message:", err);
-          // Remove temporary message on error
           setMessages(prev => prev.filter(msg => msg.tempId !== tempId));
           setReplyTo(currentReplyTo);
         });
 
-        // Reset AI toggle after sending
         setIsAIEnabled(false);
 
       } catch (err) {
@@ -196,6 +233,7 @@ const Message = () => {
       }
     }
   }, [messageInput, code, visitorId, replyTo, sendMessage, isAIEnabled]);
+
 
   const handleFileUpload = async (file) => {
     if (!code || !visitorId) return;
@@ -206,10 +244,9 @@ const Message = () => {
       formData.append('senderId', visitorId);
       formData.append('roomCode', code);
 
-      // Create temporary message
       const tempId = Date.now();
       const tempMessage = {
-        content: URL.createObjectURL(file), // Local preview
+        content: URL.createObjectURL(file),
         senderId: visitorId,
         timestamp: new Date(),
         tempId,
@@ -220,15 +257,12 @@ const Message = () => {
         size: file.size
       };
 
-      // Add temporary message immediately
       setMessages(prev => [...prev, tempMessage]);
 
-      // Send to API using store method
       await sendFile(formData);
 
     } catch (err) {
       console.error("Failed to upload file:", err);
-      // Remove temporary message on error
       setMessages(prev => prev.filter(msg => msg.tempId !== tempId));
       alert(err.response?.data?.message || "Failed to upload file");
     }
@@ -302,6 +336,10 @@ const Message = () => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const isMessageEncrypted = (message) => {
+    return message.wasEncrypted || message.decryptionError;
+  };
+
   if (!code) {
     return (
       <div className='bg-transparent w-[100%] fixed left-1/2 -translate-x-1/2 top-16 h-[calc(100vh-4rem)] flex items-center justify-center '>
@@ -333,6 +371,13 @@ const Message = () => {
           </div>
         )}
 
+        {isEncryptionReady && (
+          <div className="w-full text-center mb-2">
+            <span className="text-xs text-green-400 bg-green-900/30 px-2 py-1 rounded-full">
+              🔒 End-to-end encryption active
+            </span>
+          </div>
+        )}
 
         <MessageShow
           messages={messages}
@@ -345,6 +390,7 @@ const Message = () => {
           formatTime={formatTime}
           renderMessageWithCode={renderMessageWithCode}
           truncateText={truncateText}
+          isMessageEncrypted={isMessageEncrypted}
         />
 
         <MessageInput
@@ -358,6 +404,7 @@ const Message = () => {
           handleSend={handleSend}
           truncateText={truncateText}
           onFileUpload={handleFileUpload}
+          isEncryptionReady={isEncryptionReady}
         />
 
       </div>

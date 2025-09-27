@@ -19,7 +19,6 @@ function App() {
 
       const fp = await FingerprintJS.load();
       const { visitorId } = await fp.get();
-      // console.log("Visitor ID:", visitorId);
 
       await registerFingerprint(visitorId);
 

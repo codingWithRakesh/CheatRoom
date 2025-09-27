@@ -12,6 +12,10 @@ const roomSchema = new Schema({
   participants: [{
     type: String
   }],
+  publicKey: {
+    type: String,
+    required: true
+  }
 }, { timestamps: true });
 
 roomSchema.plugin(mongooseAggregatePaginate);

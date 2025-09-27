@@ -3,15 +3,12 @@ import { FaUser } from 'react-icons/fa6'
 import { RiRobot2Fill, RiRobot3Fill } from "react-icons/ri";
 
 const ProfileColor = ({ userId }) => {
-    // Function to generate a consistent color from userId
     const getColorFromUserId = (id) => {
-        // Simple hash function to convert string to number
         let hash = 0;
         for (let i = 0; i < id.length; i++) {
             hash = id.charCodeAt(i) + ((hash << 5) - hash);
         }
 
-        // Predefined color palette
         const colors = [
             'bg-yellow-500',
             'bg-red-500',
@@ -99,7 +96,6 @@ const ProfileColor = ({ userId }) => {
             'bg-rose-300',
         ];
 
-        // Use the hash to select a color from the palette
         const colorIndex = Math.abs(hash) % colors.length;
         return colors[colorIndex];
     };

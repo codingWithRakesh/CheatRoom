@@ -21,7 +21,8 @@ const MessageShow = ({
     messagesEndRef,
     formatTime,
     renderMessageWithCode,
-    truncateText
+    truncateText,
+    isMessageEncrypted
 }) => {
 
     const handleDownload = async (url, fileName = "download") => {
@@ -37,13 +38,33 @@ const MessageShow = ({
             link.click();
             link.remove();
 
-            // free memory
             window.URL.revokeObjectURL(blobUrl);
         } catch (error) {
             console.error("Download failed:", error);
         }
     };
 
+    const isMessageEncryptedLocal = (msg) => {
+        return msg.wasEncrypted || msg.decryptionError;
+    };
+
+    const getEncryptionStatus = (msg) => {
+        if (msg.decryptionError) {
+            return {
+                icon: '⚠️',
+                tooltip: 'Decryption failed',
+                className: 'text-red-400'
+            };
+        }
+        if (msg.wasEncrypted) {
+            return {
+                icon: '🔒',
+                tooltip: 'End-to-end encrypted',
+                className: 'text-green-400'
+            };
+        }
+        return null;
+    };
 
     const renderFileMessage = (msg) => {
         if (msg.isFile) {
@@ -65,7 +86,7 @@ const MessageShow = ({
                     </div>
                 );
             } else {
-                // Document file
+
                 const getFileIcon = (fileType) => {
                     if (fileType.includes('pdf')) return <FaFilePdf />;
                     if (fileType.includes('word')) return <RiFileWord2Fill />;
@@ -91,10 +112,6 @@ const MessageShow = ({
                                 </span> {msg.fileName}
                             </span>
                             <span className="flex items-center justify-end text-xs font-normal text-gray-500 dark:text-gray-400 gap-2">
-                                {/* {formatFileSize(msg.size || 0)} */}
-                                {/* <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="self-center" width="3" height="4" viewBox="0 0 3 4" fill="none">
-                                    <circle cx="1.5" cy="2" r="1.5" fill="#6B7280" />
-                                </svg> */}
                                 {msg.fileType.split('/')[1]?.split('.').pop()?.toUpperCase() || 'FILE'}
                             </span>
                         </div>
@@ -117,7 +134,6 @@ const MessageShow = ({
                                 </svg>
                             </button>
                         </div>
-
                     </div>
                 );
             }
@@ -134,6 +150,7 @@ const MessageShow = ({
             ) : (
                 messages.map((msg) => {
                     const messageId = msg._id || msg.tempId;
+                    const encryptionStatus = getEncryptionStatus(msg);
 
                     return (
                         <div
@@ -173,7 +190,19 @@ const MessageShow = ({
                                                 </span>
                                             ) : msg.isOwn ? "You" : `Anonymous`}
                                         </span>
-                                        <span className="text-sm font-normal text-gray-500 dark:text-gray-400">{formatTime(msg.timestamp)}</span>
+                                        
+                                        {encryptionStatus && !msg.isFile && !msg.isAI && (
+                                            <span 
+                                                className={`text-xs ${encryptionStatus.className}`}
+                                                title={encryptionStatus.tooltip}
+                                            >
+                                                {encryptionStatus.icon}
+                                            </span>
+                                        )}
+                                        
+                                        <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+                                            {formatTime(msg.timestamp)}
+                                        </span>
                                     </div>
 
                                     {msg.isReply && msg.parentmessageContent && (
@@ -188,32 +217,56 @@ const MessageShow = ({
                                             renderFileMessage(msg)
                                         ) : (
                                             <div className={`text-sm font-normal ${msg.isOwn ? 'text-white' : msg.isAI ? 'text-blue-100' : 'text-gray-900 dark:text-white'}`}>
-                                                <ReactMarkdown
-                                                    components={{
-                                                        code({ node, inline, className, children, ...props }) {
-                                                            const match = /language-(\w+)/.exec(className || '');
-                                                            return !inline && match ? (
-                                                                <SyntaxHighlighter
-                                                                    style={dracula}
-                                                                    language={match[1]}
-                                                                    PreTag="div"
-                                                                    {...props}
-                                                                >
-                                                                    {String(children).replace(/\n$/, '')}
-                                                                </SyntaxHighlighter>
-                                                            ) : (
-                                                                <code className={className} {...props}>
-                                                                    {children}
-                                                                </code>
-                                                            );
-                                                        }
-                                                    }}
+                                                {msg.decryptionError ? (
+                                                    <div className="flex items-center gap-2 text-orange-300">
+                                                        <span>⚠️</span>
+                                                        <span className="italic">{msg.content}</span>
+                                                    </div>
+                                                ) : (
+                                                    <ReactMarkdown
+                                                        components={{
+                                                            code({ node, inline, className, children, ...props }) {
+                                                                const match = /language-(\w+)/.exec(className || '');
+                                                                return !inline && match ? (
+                                                                    <SyntaxHighlighter
+                                                                        style={dracula}
+                                                                        language={match[1]}
+                                                                        PreTag="div"
+                                                                        {...props}
+                                                                    >
+                                                                        {String(children).replace(/\n$/, '')}
+                                                                    </SyntaxHighlighter>
+                                                                ) : (
+                                                                    <code className={className} {...props}>
+                                                                        {children}
+                                                                    </code>
+                                                                );
+                                                            }
+                                                        }}
+                                                    >
+                                                        {msg.content}
+                                                    </ReactMarkdown>
+                                                )}
+                                            </div>
+                                        )}
+                                        
+                                        {msg.isFile && encryptionStatus && (
+                                            <div className="mt-2 flex justify-end">
+                                                <span 
+                                                    className={`text-xs ${encryptionStatus.className} bg-black/30 px-2 py-1 rounded-full`}
+                                                    title={encryptionStatus.tooltip}
                                                 >
-                                                    {msg.content}
-                                                </ReactMarkdown>
+                                                    {encryptionStatus.icon} {encryptionStatus.tooltip}
+                                                </span>
                                             </div>
                                         )}
                                     </div>
+                                    
+                                    {msg.decryptionError && (
+                                        <div className="text-xs text-orange-400 mt-1">
+                                            This message could not be decrypted. It may be from a different room session.
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

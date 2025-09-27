@@ -4,21 +4,37 @@ import { ApiError } from "../utils/apiError.js";
 import { Room } from "../models/room.model.js"
 import { io } from "../socket/socket.js";
 import { isValidObjectId } from "mongoose";
+import { PrivateKey } from "../models/privateKeys.model.js"
 
 const generateRoomCode = asyncHandler(async (req, res) => {
+    const { publicKey, privateKey } = req.body;
+    if (!publicKey || !privateKey) {
+        throw new ApiError(400, "publicKey and privateKey are required");
+    }
+
     let code;
     let exists;
 
-    // Generate unique 6-digit code
     do {
         code = Math.floor(100000 + Math.random() * 900000).toString();
         exists = await Room.exists({ code });
     } while (exists);
 
-    // Create new room
     const room = await Room.create({
-        code
+        code,
+        publicKey
     });
+    if(!room){
+        throw new ApiError(500, "Failed to create room");
+    }
+
+    const key = await PrivateKey.create({
+        roomID : room._id,
+        privateKey : privateKey,
+    })
+    if(!key){
+        throw new ApiError(500, "Failed to create private key");
+    }
 
     return res.status(201).json(
         new ApiResponse(201, { code: room.code }, "Room created successfully")
@@ -28,16 +44,14 @@ const generateRoomCode = asyncHandler(async (req, res) => {
 const joinRoom = asyncHandler(async (req, res) => {
     const { code, visitorId } = req.body;
 
-    // Check if room exists
     const room = await Room.findOne({ code });
     if (!room) {
         return res.status(404).json(
             new ApiError(404, "Room not found")
         );
     }
-    
-    // Add user to room
-    if(!room.participants.includes(visitorId)) {
+
+    if (!room.participants.includes(visitorId)) {
         room.participants.push(visitorId);
         await room.save({ validateBeforeSave: true });
     }
@@ -50,7 +64,6 @@ const joinRoom = asyncHandler(async (req, res) => {
 const exitRoom = asyncHandler(async (req, res) => {
     const { code, visitorId } = req.body;
 
-    // Check if room exists
     const room = await Room.findOne({ code });
     if (!room) {
         return res.status(404).json(
@@ -58,7 +71,6 @@ const exitRoom = asyncHandler(async (req, res) => {
         );
     }
 
-    // Remove user from room
     room.participants = room.participants.filter(participant => participant !== visitorId);
     await room.save();
 

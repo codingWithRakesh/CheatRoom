@@ -15,10 +15,12 @@ app.use(cookieParser())
 import fingerprintRouter from "./routes/fingerprint.route.js"
 import roomRouter from "./routes/room.route.js"
 import messageRouter from "./routes/message.route.js"
+import privateKeyRouter from "./routes/privateKeys.route.js"
 
 app.use("/api/v1/fingerprint", fingerprintRouter)
 app.use("/api/v1/room", roomRouter)
 app.use("/api/v1/message", messageRouter)
+app.use("/api/v1/key", privateKeyRouter)
 
 app.get("/", (req, res) => {
     res.send("working")

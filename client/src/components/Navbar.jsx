@@ -24,12 +24,11 @@ const Navbar = () => {
 
   const handleExit = async () => {
     await exitRoom(code, visitorId);
-    navigate('/'); // Navigate to home or another route
+    navigate('/');
   };
 
   return (
     <div className={`h-16 ${widthClass} fixed ${topClass} rounded-2xl left-1/2 -translate-x-1/2 bg-gray-800 text-white flex items-center justify-between px-4 border border-gray-700 z-50`}>
-      {/* Left side - Logo */}
       <div className="flex items-center gap-4">
         <div className='flex items-center justify-center text-4xl'>
           <FaShieldVirus />
@@ -37,7 +36,6 @@ const Navbar = () => {
         <h1 className='text-xl font-bold sm:block hidden'>CheatRoom</h1>
       </div>
 
-      {/* Center - Code display (only on small screens) */}
       {code && (
         <div className="lg:hidden absolute left-1/2 -translate-x-1/2 flex items-center gap-2 bg-gray-700/80 py-1 px-3 rounded-lg border border-gray-600">
           <span className="text-sm font-mono font-medium tracking-wide">Room: {code}</span>
@@ -58,9 +56,7 @@ const Navbar = () => {
         </div>
       )}
 
-      {/* Right side - User icon and Exit button */}
       <div className='flex items-center gap-4'>
-        {/* Exit button visible only at 1000px and below when code exists */}
         {code && (
           <button
             onClick={handleExit}
@@ -70,7 +66,6 @@ const Navbar = () => {
             <span className="hidden xs:inline">Exit</span>
           </button>
         )}
-        {/* Profile icon - hidden on mobile when code exists, otherwise always visible */}
         <div className={`${code ? 'hidden md:flex' : 'flex'} items-center justify-center text-3xl cursor-pointer`}>
           <FaUserShield />
         </div>

@@ -11,20 +11,17 @@ const ContentDiv = ({ alignment }) => {
     const { visitorId } = fingerprintStore();
     const navigate = useNavigate();
 
-    // Shared states
     const [isCopied, setIsCopied] = useState(false);
     const [joinCodeInput, setJoinCodeInput] = useState('');
     const [isFocused, setIsFocused] = useState(false);
     const [localRoomCode, setLocalRoomCode] = useState('');
 
-    // Update local room code when store updates
     useEffect(() => {
         if (currentRoomCode) {
             setLocalRoomCode(currentRoomCode);
         }
     }, [currentRoomCode]);
 
-    // Handle errors
     useEffect(() => {
         if (error) {
             alert(error);
@@ -32,7 +29,6 @@ const ContentDiv = ({ alignment }) => {
         }
     }, [error]);
 
-    // Generate new room code
     const handleGenerateNewRoom = async () => {
         try {
             const code = await generateRoomCode();
@@ -55,7 +51,7 @@ const ContentDiv = ({ alignment }) => {
         try {
             const success = await joinRoom(joinCodeInput.trim(), visitorId);
             if (success) {
-                console.log('Successfully joined room:', joinCodeInput);
+                // console.log('Successfully joined room:', joinCodeInput);
                 navigate(`/${joinCodeInput}`);
             }
         } catch (err) {
@@ -65,24 +61,20 @@ const ContentDiv = ({ alignment }) => {
 
     return (
         <div className='h-full lg:h-[90%] w-full lg:w-[45%] rounded-2xl bg-gray-800 border border-gray-700 flex flex-col items-center justify-center text-white p-4 lg:p-8 space-y-4 lg:space-y-8 relative overflow-hidden'>
-            {/* Common decorative elements */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-purple-900/10 pointer-events-none"></div>
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
             
-            {/* Common icon */}
             <div className='flex items-center justify-center text-2xl lg:text-4xl p-3 lg:p-5 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg'>
                 <FaShieldVirus className="text-white" />
             </div>
 
-            {/* Loading overlay */}
             {isLoading && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
                     <div className="animate-spin rounded-full h-8 lg:h-12 w-8 lg:w-12 border-b-2 border-white"></div>
                 </div>
             )}
 
-            {/* SHOW JOIN SECTION FIRST */}
             {alignment === 'right' ? (
                 <>
                     <h1 className='text-xl lg:text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent text-center'>

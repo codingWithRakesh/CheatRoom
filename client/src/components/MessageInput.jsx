@@ -21,7 +21,6 @@ const MessageInput = ({
         if (file) {
             onFileUpload(file);
         }
-        // Reset the input
         event.target.value = '';
     };
 
