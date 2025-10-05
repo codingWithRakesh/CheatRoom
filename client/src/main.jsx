@@ -6,6 +6,7 @@ import App from './App.jsx'
 import Home from './pages/Home.jsx'
 import Message from './pages/Message.jsx'
 import Error from './pages/Error.jsx'
+import Loading from './components/Loading.jsx'
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
       {
         path : "/:code",
         element : <Message />
+      },
+      {
+        path: "/g",
+        element: <Loading />
       }
     ]
   }

@@ -60,28 +60,27 @@ const ContentDiv = ({ alignment }) => {
     };
 
     return (
-        <div className='h-full lg:h-[90%] w-full lg:w-[45%] rounded-2xl bg-gray-800 border border-gray-700 flex flex-col items-center justify-center text-white p-4 lg:p-8 space-y-4 lg:space-y-8 relative overflow-hidden'>
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-purple-900/10 pointer-events-none"></div>
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+        <div className='h-82 w-full md:w-xl bg-zinc-900 rounded flex flex-col items-center justify-center text-white p-4 lg:p-8 space-y-4 lg:space-y-8 relative overflow-hidden'>
             
-            <div className='flex items-center justify-center text-2xl lg:text-4xl p-3 lg:p-5 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg'>
+            <div className='flex items-center justify-center text-2xl lg:text-4xl p-3 lg:p-5 rounded-full bg-zinc-800 shadow-lg'>
                 <FaShieldVirus className="text-white" />
             </div>
 
             {isLoading && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-                    <div className="animate-spin rounded-full h-8 lg:h-12 w-8 lg:w-12 border-b-2 border-white"></div>
+                <div className="absolute h-full w-full inset-0 bg-black/50 flex items-center justify-center z-10">
+                    <div className="relative flex items-center justify-center">
+                        <div className="h-10 w-10 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
+                    </div>
                 </div>
             )}
 
             {alignment === 'right' ? (
                 <>
-                    <h1 className='text-xl lg:text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent text-center'>
+                    <h1 className='text-5xl sujoy1 lg:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent text-center'>
                         Join Room
                     </h1>
-                    <div className="w-full max-w-md">
-                        <div className={`relative flex items-center transition-all duration-200 ${isFocused ? 'ring-2 ring-blue-500/30' : ''} bg-gray-700/50 rounded-xl p-1 border border-gray-600`}>
+                    <div className="w-full max-w-md mt-6">
+                        <div className={`relative flex items-center transition-all duration-200 ${isFocused ? 'ring-2 ring-blue-500/30' : ''} bg-black rounded-xl p-1 border border-gray-600`}>
                             <input 
                                 type="text" 
                                 value={joinCodeInput}
@@ -89,53 +88,73 @@ const ContentDiv = ({ alignment }) => {
                                 onFocus={() => setIsFocused(true)}
                                 onBlur={() => setIsFocused(false)}
                                 placeholder="Enter room code"
-                                className="w-full bg-transparent border-none outline-none px-3 lg:px-4 py-2 lg:py-3 text-base lg:text-lg font-mono placeholder-gray-400"
+                                className="w-3xl bg-transparent border-none outline-none px-3 lg:px-4 py-2 lg:py-2 sujoy2 text-base lg:text-lg font-mono placeholder-gray-400"
                                 onKeyPress={(e) => e.key === 'Enter' && handleJoin()}
                                 disabled={isLoading}
                             />
                             <button 
                                 onClick={handleJoin}
                                 disabled={!joinCodeInput.trim() || isLoading}
-                                className={`flex items-center cursor-pointer justify-center p-2 lg:p-3 rounded-lg transition-all duration-200 ${joinCodeInput.trim() && !isLoading ? 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600' : 'bg-gray-600 cursor-not-allowed'} text-white`}
+                                className={`flex items-center cursor-pointer justify-center p-2 lg:py-3 lg:px-6 rounded-lg transition-all duration-200 ${joinCodeInput.trim() && !isLoading ? 'bg-gradient-to-r from-blue-700 to-purple-800 hover:from-pink-800 hover:to-blue-900' : 'bg-green-800/30 cursor-not-allowed'} text-white`}
                                 aria-label="Join room"
                             >
                                 <TbArrowRight className="text-lg lg:text-xl" />
                             </button>
                         </div>
-                        <p className="text-gray-400 text-xs lg:text-sm mt-2 text-center">
+                        <p className="text-gray-400 sujoy2 text-xs lg:text-sm mt-2 text-center">
                             Enter the room code provided by your host
                         </p>
                     </div>
                 </>
             ) : (
                 <>
-                    <h1 className='text-xl lg:text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent text-center'>
-                        Generate New Room
-                    </h1>
-                    <div className="buttonDiv">
-                        <button 
-                            onClick={handleGenerateNewRoom}
-                            disabled={isLoading}
-                            className='bg-gradient-to-r cursor-pointer from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 lg:py-3 px-4 lg:px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base'
-                        >
-                            {isLoading ? 'Generating...' : 'New Room'}
-                        </button>
+                    <div className="flex flex-col md:flex-row p-1 justify-center gap-6 items-center">
+                        <h1 className='text-5xl lg:text-4xl sujoy1 font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent text-center'>
+                            Generate New Room
+                        </h1>
+                        <div className="buttonDiv">
+                            <button 
+                                onClick={handleGenerateNewRoom}
+                                disabled={isLoading}
+                                className='bg-gradient-to-r items-center text-center sujoy1 cursor-pointer from-blue-950 to-purple-950 hover:from-pink-900 hover:to-blue-700 text-white font-semibold py-2 lg:py-2 px-4 lg:px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-2xl lg:text-2xl'
+                            >
+                                {isLoading ? 'Generating...' : 'New Room'}
+                            </button>
+                        </div>
                     </div>
                     {localRoomCode && (
-                        <div className="showCode flex items-center gap-2 lg:gap-3 mt-2 w-full max-w-xs">
-                            <div className='text-base lg:text-lg font-mono font-bold bg-gray-700/50 p-2 lg:p-3 rounded-lg flex-1 text-center border border-gray-600 tracking-wider'>
+                        <div className="showCode p-1 items-center justify-center flex gap-2 lg:gap-3 w-full max-w-md">
+                            <div className='text-base sujoy1 flex justify-center items-center lg:text-3xl font-mono font-bold bg-black p-2 lg:py-1 lg:px-2 rounded flex-1 text-center border border-gray-600 tracking-wider'>
                                 {localRoomCode}
                             </div>
-                            <button 
+                            {/* <button 
                                 onClick={handleCopy}
                                 disabled={isLoading}
-                                className='bg-gray-700/50 cursor-pointer hover:bg-gray-600/70 text-white p-2 lg:p-3 rounded-lg border border-gray-600 transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed'
+                                className='bg-zinc-800 cursor-pointer hover:bg-zinc-900 text-white p-2 lg:p-3 rounded-lg border border-gray-600 transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed'
                                 aria-label={isCopied ? "Copied!" : "Copy code"}
                             >
                                 {isCopied ? (
                                     <MdDone className="text-green-400 text-lg lg:text-xl" />
                                 ) : (
                                     <TbCopy className="text-lg lg:text-xl" />
+                                )}
+                            </button> */}
+                            <button 
+                                onClick={handleCopy}
+                                disabled={isLoading}
+                                className='relative group sujoy1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-green-800/30 text-gray-300 transition-all duration-300 ease-in-out hover:bg-green-800 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+                                aria-label={isCopied ? "Copied!" : "Copy code"}
+                            >
+                                {isCopied ? (
+                                    <>
+                                        <MdDone className="text-green-400 text-2xl" />
+                                        <span className="text-2xl text-gray-300">Copied</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <TbCopy className="text-2xl" />
+                                        <span className="text-2xl text-gray-300">Copy</span>
+                                    </>
                                 )}
                             </button>
                         </div>
