@@ -5,12 +5,14 @@ import { TbCopy } from 'react-icons/tb';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import roomStore from "../store/roomStore.js"
 import fingerprintStore from '../store/fingerprintStore.js';
+import LiveClock from './LiveClock.jsx';
+import { FiHelpCircle, FiMessageSquare, FiSettings } from 'react-icons/fi';
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const topClass = location.pathname === "/" ? "top-4" : "top-0";
-  const widthClass = location.pathname === "/" ? "w-[95%]" : "w-[100%]";
+  const topClass = location.pathname === "/" ? "top-0" : "top-0";
+  const widthClass = location.pathname === "/" ? "w-[100%]" : "w-[100%]";
   const [isCopied, setIsCopied] = useState(false);
   const { code } = useParams();
   const { exitRoom } = roomStore();
@@ -28,22 +30,22 @@ const Navbar = () => {
   };
 
   return (
-    <div className={`h-16 ${widthClass} fixed ${topClass} rounded-2xl left-1/2 -translate-x-1/2 bg-gray-800 text-white flex items-center justify-between px-4 border border-gray-700 z-50`}>
-      <div className="flex items-center gap-4">
+    <div className={`h-16 ${widthClass} fixed ${topClass} left-1/2 -translate-x-1/2 bg-black text-white flex items-center justify-between px-4 border-b border-gray-700 z-50`}>
+      <div className="flex items-center p-1 gap-4">
         <div className='flex items-center justify-center text-4xl'>
           <FaShieldVirus />
         </div>
-        <h1 className='text-xl font-bold sm:block hidden'>CheatRoom</h1>
+        <h1 className={`${code ? 'hidden lg:flex' : 'block'} text-4xl font-bold sujoy1 text-center`}>CheatRoom</h1>
       </div>
 
       {code && (
-        <div className="lg:hidden absolute left-1/2 -translate-x-1/2 flex items-center gap-2 bg-gray-700/80 py-1 px-3 rounded-lg border border-gray-600">
-          <span className="text-sm font-mono font-medium tracking-wide">Room: {code}</span>
+        <div className="lg:hidden absolute left-1/2 -translate-x-1/2 flex items-center gap-2 bg-zinc-800/80 py-1 px-3 rounded border border-zinc-600">
+          <span className="text-md sujoy1 font-mono font-medium tracking-wide">Room: {code}</span>
           <button
             onClick={handleCopy}
-            className={`p-2 rounded-md transition-all duration-200 flex items-center justify-center ${isCopied
+            className={`p-2 rounded transition-all duration-200 flex items-center justify-center ${isCopied
                 ? 'bg-green-500/20 text-green-400'
-                : 'bg-gray-600/50 hover:bg-gray-500/70 text-gray-300 hover:text-white'
+                : 'bg-zinc-600/50 hover:bg-zinc-500/70 text-gray-300 hover:text-white'
               }`}
             aria-label={isCopied ? "Copied!" : "Copy code"}
           >
@@ -57,18 +59,24 @@ const Navbar = () => {
       )}
 
       <div className='flex items-center gap-4'>
+        <div className={`${code ? 'hidden lg:flex' : 'hidden md:flex'} items-center justify-center text-3xl`}>
+          <LiveClock />
+          <div className="flex items-center p-2 justify-center gap-4 text-white">
+            <FiHelpCircle className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
+            <FiMessageSquare className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
+            <FiSettings className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
+          </div>
+        </div>
         {code && (
           <button
             onClick={handleExit}
-            className="max-[1000px]:flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-3 rounded-lg border border-red-700 transition-colors duration-200 text-sm hidden"
+            className="max-[1000px]:flex items-center gap-2 bg-red-600/50 hover:bg-red-700 text-white font-medium py-3 px-4 rounded border-2 border-red-700 transition-colors duration-200 text-sm hidden"
           >
             <MdExitToApp className="text-lg" />
             <span className="hidden xs:inline">Exit</span>
           </button>
         )}
-        <div className={`${code ? 'hidden md:flex' : 'flex'} items-center justify-center text-3xl cursor-pointer`}>
-          <FaUserShield />
-        </div>
+        
       </div>
     </div>
   )

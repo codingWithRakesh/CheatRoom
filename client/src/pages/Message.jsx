@@ -342,7 +342,7 @@ const Message = () => {
 
   if (!code) {
     return (
-      <div className='bg-transparent w-[100%] fixed left-1/2 -translate-x-1/2 top-16 h-[calc(100vh-4rem)] flex items-center justify-center '>
+      <div className='bg-zinc-950 w-[100%] fixed left-1/2 -translate-x-1/2 top-16 h-[calc(100vh-4rem)] flex items-center justify-center '>
         <div className="messageShow h-full bg-gray-800 w-[85%] border border-gray-700 rounded-lg p-4 flex items-center justify-center">
           <div className="text-white text-lg">Invalid room code</div>
         </div>
@@ -352,19 +352,19 @@ const Message = () => {
 
   if (isLoading && messages.length === 0) {
     return (
-      <div className='bg-transparent w-[100%] fixed left-1/2 -translate-x-1/2 top-16 h-[calc(100vh-4rem)] flex items-center justify-center '>
-        <div className="messageShow h-full bg-gray-800 w-[85%] border border-gray-700 rounded-lg p-4 flex items-center justify-center">
-          <div className="text-white text-lg">Loading messages...</div>
+      <div className='bg-zinc-950 w-[100%] fixed left-1/2 -translate-x-1/2 top-16 h-[calc(100vh-4rem)] flex items-center justify-center '>
+        <div className="messageShow h-full w-full p-4 flex items-center justify-center">
+          <div className="text-white text-lg sujoy1">Loading messages...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className='bg-transparent w-[100%] fixed left-1/2 -translate-x-1/2 top-16 h-[92%] flex items-center justify-center '>
+    <div className='w-[100%] bg-zinc-950 fixed left-1/2 -translate-x-1/2 top-16 h-[92%] flex items-center justify-center'>
       <SidebarChat />
 
-      <div className="messageShow h-full bg-gray-800 lg:w-[85%] w-full border border-gray-700 rounded-lg p-4 flex flex-col items-center justify-center">
+      <div className="messageShow h-full w-full p-0 flex flex-col items-center justify-center">
         {isLoading && messages.length === 0 && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
@@ -372,8 +372,8 @@ const Message = () => {
         )}
 
         {isEncryptionReady && (
-          <div className="w-full text-center mb-2">
-            <span className="text-xs text-green-400 bg-green-900/30 px-2 py-1 rounded-full">
+          <div className="w-full text-center mb-2 p-2">
+            <span className="text-sm sujoy2 text-green-400 bg-green-900/30 px-2 py-1 rounded">
               🔒 End-to-end encryption active
             </span>
           </div>

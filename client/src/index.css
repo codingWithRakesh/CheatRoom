@@ -1,1 +1,25 @@
 @import "tailwindcss";
+
+.sujoy1 {
+  font-family: "Bebas Neue", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-optical-sizing: auto;
+  margin-bottom: -5px;
+}
+
+
+
+.sujoy2 {
+  font-family: "Alan Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+/* 
+.messageDivShow{
+    background-image: url("../src/assets/images/view1.jpg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+} */

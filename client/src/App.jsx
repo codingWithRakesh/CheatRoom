@@ -68,7 +68,7 @@ function App() {
   }
 
   return (
-    <div className='h-screen w-screen flex justify-center items-center bg-gray-900'>
+    <div className='h-full w-full flex justify-center items-center bg-zinc-950'>
       <Navbar />
       <Suspense>
         <Outlet />
