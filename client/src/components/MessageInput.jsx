@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { IoClose, IoSendSharp, IoAttach } from 'react-icons/io5';
 import { RiGeminiFill } from 'react-icons/ri';
+import Emoji from './Emoji';
 
 const MessageInput = ({
     isAIEnabled,
@@ -99,6 +100,7 @@ const MessageInput = ({
                             className="hidden"
                             accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.rtf"
                         />
+                        <Emoji onSelect={(emoji) => setMessageInput((prev) => prev + emoji)} />
                     </div>
                     
                     {/* Textarea with AI badge integrated */}

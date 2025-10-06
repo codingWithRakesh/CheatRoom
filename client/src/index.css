@@ -27,3 +27,12 @@ body{
     background-position: center;
     background-size: cover;
 } */
+
+::-webkit-scrollbar {
+  width: 4px; 
+}
+
+::-webkit-scrollbar-thumb {
+  background: #202020; 
+  border-radius: 10px;
+}
