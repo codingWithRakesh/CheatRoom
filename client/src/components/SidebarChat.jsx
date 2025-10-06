@@ -26,7 +26,7 @@ const SidebarChat = () => {
     };
     
     return (
-        <div className="hidden lg:flex h-full w-[20%] border-r border-gray-700 px-8 py-12 flex-col items-center justify-between">
+        <div className="hidden lg:flex h-[100%] w-[20%] border-r border-gray-700 px-8 py-12 flex-col items-center justify-between">
             <div className="flex flex-col items-center">
                 {/* Profile Section */}
                 <div className="relative mb-8">

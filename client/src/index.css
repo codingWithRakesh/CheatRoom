@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+body{
+  background-color: rgb(10, 10, 10);
+}
+
 .sujoy1 {
   font-family: "Bebas Neue", sans-serif;
   font-weight: 400;

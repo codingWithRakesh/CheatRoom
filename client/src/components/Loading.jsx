@@ -1,84 +1,143 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar'; // Assuming this component exists
-import { FaBolt, FaLightbulb } from 'react-icons/fa'; // Using react-icons for some nice visuals
+import { FaServer, FaLightbulb, FaRocket } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// --- Static Data for Dynamic Content ---
+const statusSteps = [
+    'Waking up the server...',
+    'Establishing secure connection...',
+    'Booting up the database...',
+    'Preparing your workspace...',
+    'Almost there!'
+];
+
+const proTips = [
+    'Tip: Use Ctrl+K to open the command palette for quick navigation.',
+    'Did you know? Our new AI feature can help summarize your documents.',
+    'Tip: Drag and drop files directly into the editor to upload them instantly.',
+    'Did you know? You can invite team members from the settings panel.',
+    'Tip: Customize your theme by going to Preferences > Appearance.'
+];
 
 const Loading = () => {
-    // --- STATE MANAGEMENT FOR DYNAMIC CONTENT ---
+    // --- STATE MANAGEMENT ---
+    const [statusText, setStatusText] = useState(statusSteps[0]);
+    const [tipText, setTipText] = useState(proTips[0]);
+    const [progress, setProgress] = useState(10);
 
-    // 1. For the main loading status text
-    const [statusText, setStatusText] = useState('Initializing connection...');
-    const statusSteps = [
-        'Waking up the server...',
-        'Establishing secure connection...',
-        'Loading user profile...',
-        'Preparing your workspace...',
-        'Almost ready!'
-    ];
-
-    // 2. For the "Pro Tips" or feature highlights
-    const [tipText, setTipText] = useState('You can organize your projects into custom folders for better clarity.');
-    const proTips = [
-        'Tip: Use the keyboard shortcut Ctrl+S to quickly save your work.',
-        'Did you know? Our new AI feature can help summarize your documents.',
-        'Tip: Drag and drop files directly into the editor to upload them instantly.',
-        'Did you know? You can invite team members from the settings panel.',
-        'Tip: Customize your theme by going to Preferences > Appearance.'
-    ];
-
-    // --- EFFECTS TO CYCLE THE DYNAMIC CONTENT ---
-
+    // --- EFFECTS FOR DYNAMIC CONTENT AND PROGRESS ---
     useEffect(() => {
+        // Cycle through status messages
         let stepIndex = 0;
         const statusInterval = setInterval(() => {
             stepIndex = (stepIndex + 1) % statusSteps.length;
             setStatusText(statusSteps[stepIndex]);
-        }, 2200); // Change status text every 2.2 seconds
+        }, 2500); // Change status every 2.5 seconds
 
-        return () => clearInterval(statusInterval);
-    }, []);
+        // Simulate progress bar filling up
+        const progressInterval = setInterval(() => {
+            setProgress(prev => {
+                if (prev >= 95) { // Stop at 95% to feel like it's finishing
+                    clearInterval(progressInterval);
+                    return 95;
+                }
+                const randomIncrement = Math.floor(Math.random() * 8) + 2;
+                return Math.min(prev + randomIncrement, 95);
+            });
+        }, 800); // Update progress every 0.8 seconds
 
-    useEffect(() => {
+        // Cycle through pro tips
         let tipIndex = 0;
         const tipInterval = setInterval(() => {
             tipIndex = (tipIndex + 1) % proTips.length;
             setTipText(proTips[tipIndex]);
-        }, 4000); // Change tip every 4 seconds
+        }, 5000); // Change tip every 5 seconds
 
-        return () => clearInterval(tipInterval);
+        // Cleanup function to clear intervals when the component unmounts
+        return () => {
+            clearInterval(statusInterval);
+            clearInterval(progressInterval);
+            clearInterval(tipInterval);
+        };
     }, []);
 
-
     return (
-        <div className="min-h-screen bg-zinc-950 text-white font-sans">
+        <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col">
             <Navbar />
-            
-            <div className="flex flex-col items-center justify-center min-h-[85vh] px-4 py-8 mt-16">
-                <div className="w-full max-w-xl mx-auto">
-                    
-                    {/* --- MAIN STATUS SECTION --- */}
+            <div className="flex-grow flex items-center justify-center p-4">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="w-full max-w-2xl mx-auto space-y-12"
+                >
+                    {/* --- MAIN HEADER & PROGRESS BAR --- */}
                     <div className="text-center">
-                        <FaBolt className="mx-auto text-purple-500 text-5xl mb-4" />
-                        <h1 className="text-6xl sujoy1 font-bold text-gray-100 mb-2">Preparing Your Experience</h1>
-                        <p key={statusText} className="text-lg sujoy2 text-zinc-400 transition-opacity duration-300 animate-fade-in mt-2">
-                            {statusText}
-                        </p>
+                        <FaRocket className="mx-auto text-purple-500 text-5xl mb-6 animate-pulse" />
+                        <h1 className="text-6xl sujoy1 font-bold text-gray-100 mb-4">
+                            Preparing Your Experience
+                        </h1>
+                        <AnimatePresence mode="wait">
+                            <motion.p
+                                key={statusText}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="text-xl text-zinc-400 sujoy2 mt-4"
+                            >
+                                {statusText}
+                            </motion.p>
+                        </AnimatePresence>
                     </div>
 
-                    {/* --- "PRO TIP" CARD SECTION --- */}
-                    <div className="bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-xl p-6 shadow-lg mt-12">
-                        <h3 className="text-4xl sujoy1 font-semibold text-teal-300 mb-3 flex items-center">
-                            <FaLightbulb className="w-8 h-8 mr-2" />
-                            Pro Tip
-                        </h3>
-                        <p key={tipText} className="text-zinc-300 mt-4 italic transition-opacity duration-500 animate-fade-in">
-                           "{tipText}"
-                        </p>
+                    {/* Progress Bar */}
+                    <div className="w-full bg-zinc-800 rounded-full h-2.5 overflow-hidden">
+                        <motion.div
+                            className="bg-gradient-to-r from-purple-600 to-indigo-500 h-2.5 rounded-full"
+                            initial={{ width: '0%' }}
+                            animate={{ width: `${progress}%` }}
+                            transition={{ duration: 0.8, ease: "easeInOut" }}
+                        />
                     </div>
 
-                    <p className="text-center sujoy2 text-sm text-zinc-600 mt-8">
-                        This initial load may take a moment. Thanks for your patience! ☕
-                    </p>
-                </div>
+                    {/* --- INFORMATION CARDS --- */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* "Why the wait?" Card */}
+                        <div className="bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-xl p-6">
+                            <h3 className="text-3xl sujoy1 font-semibold text-sky-400 mb-3 flex items-center">
+                                <FaServer className="w-6 h-6 mr-3" />
+                                Why the wait?
+                            </h3>
+                            <p className="text-zinc-400 sujoy2 mt-2 text-sm">
+                                Our application is hosted on a service that puts the server to sleep during inactivity. This initial load involves waking it up. Thanks for your patience!
+                            </p>
+                        </div>
+
+                        {/* "Pro Tip" Card */}
+                        <div className="bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-xl p-6">
+                            <h3 className="text-3xl sujoy1 font-semibold text-teal-300 mb-3 flex items-center">
+                                <FaLightbulb className="w-6 h-6 mr-3" />
+                                Pro Tip
+                            </h3>
+                            <div className="relative h-16 flex items-center">
+                                <AnimatePresence mode="wait">
+                                    <motion.p
+                                        key={tipText}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.5 }}
+                                        className="text-zinc-300 sujoy2 text-sm italic absolute w-full"
+                                    >
+                                        "{tipText}"
+                                    </motion.p>
+                                </AnimatePresence>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
             </div>
         </div>
     );

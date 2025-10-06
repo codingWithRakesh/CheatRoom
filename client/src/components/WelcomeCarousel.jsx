@@ -13,19 +13,19 @@ const slides = [
     image: img2,
     title: "Get a link that you can share",
     description:
-      "Click New meeting to get a link that you can send to people that you want to meet with.",
+      "Click New Room to get a link that you can send to people that you want to chat with.",
   },
   {
     image: img3,
-    title: "Plan ahead and stay organized",
+    title: "Delete room and all data in 10 days",
     description:
-      "Schedule meetings in Google Calendar and send invites automatically to your team.",
+      "This room and all associated data will be permanently deleted in 10 days.",
   },
   {
     image: img1,
-    title: "Your meeting is safe and secure",
+    title: "Your chat is safe and secure",
     description:
-      "No one can join a meeting unless invited or admitted by the host.",
+      "No one can join a chat unless invited or admitted by the host.",
   },
 ];
 
