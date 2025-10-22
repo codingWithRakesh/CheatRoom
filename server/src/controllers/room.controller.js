@@ -13,7 +13,7 @@ const generateRoomCode = asyncHandler(async (req, res) => {
     }
 
     let code;
-    let exists;
+    let exists
 
     do {
         code = Math.floor(100000 + Math.random() * 900000).toString();
