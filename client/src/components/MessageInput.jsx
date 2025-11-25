@@ -18,12 +18,11 @@ const MessageInput = ({
     const fileInputRef = useRef(null);
     const textareaRef = useRef(null);
 
-    // This effect handles resizing the textarea based on its content
     useEffect(() => {
         if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto'; // Reset height
+            textareaRef.current.style.height = 'auto';
             const scrollHeight = textareaRef.current.scrollHeight;
-            textareaRef.current.style.height = `${scrollHeight}px`; // Set to content height
+            textareaRef.current.style.height = `${scrollHeight}px`;
         }
     }, [messageInput]);
 
@@ -33,24 +32,20 @@ const MessageInput = ({
         if (file) {
             onFileUpload(file);
         }
-        event.target.value = ''; // Reset file input
+        event.target.value = '';
     };
 
     const triggerFileInput = () => {
         fileInputRef.current?.click();
     };
 
-    // Make sure the truncateText function is passed in as a prop
-    // If it's not available, you can define a simple one here for safety:
     const safeTruncateText = truncateText || ((text, length) => text.substring(0, length));
 
 
     return (
-        // Main container with padding to give the component some space
         <div className="w-full">
             <div className="w-full flex flex-col">
                 
-                {/* Reply-to Block: Positioned above the input bar for clarity */}
                 {replyTo && (
                     <div className="bg-zinc-900 rounded-t-lg p-2 px-3 text-sm relative border-b border-zinc-700">
                         <div className="flex justify-between items-center">
@@ -71,9 +66,7 @@ const MessageInput = ({
                     </div>
                 )}
 
-                {/* Main input bar: A single cohesive unit */}
-                <div className="bg-black h-20 w-full flex items-center gap-2 px-4 py-4 transition-all">
-                    {/* Left-side action buttons */}
+                <div className="bg-black min-h-20 w-full flex items-end content-end justify-end gap-2 px-4 py-4 transition-all">
                     <div className="flex items-center gap-1">
                         <button
                             className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300
@@ -103,7 +96,6 @@ const MessageInput = ({
                         <Emoji onSelect={(emoji) => setMessageInput((prev) => prev + emoji)} />
                     </div>
                     
-                    {/* Textarea with AI badge integrated */}
                     <div className="flex-1 relative">
                          {isAIEnabled && (
                             <span className="text-xs text-blue-300 bg-blue-900/50 px-2 py-0.5 rounded-full absolute -top-5 left-1">
@@ -116,13 +108,12 @@ const MessageInput = ({
                             value={messageInput}
                             onChange={(e) => setMessageInput(e.target.value)}
                             onKeyPress={handleKeyPress}
-                            className='w-full bg-transparent outline-none text-white text-base resize-none px-2 py-2 max-h-40 overflow-y-auto'
+                            className='w-full bg-transparent outline-none text-white text-base resize-none px-2 py-2 max-h-[40rem] overflow-y-auto'
                             autoFocus
                             rows={1}
                         />
                     </div>
 
-                    {/* Send Button -- FIXED HERE */}
                     <button
                         className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
                         ${messageInput.trim() ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-gray-400'}`}
