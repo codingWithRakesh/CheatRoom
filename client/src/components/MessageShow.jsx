@@ -213,70 +213,72 @@ const MessageShow = ({
                                         </div>
                                     )}
 
-                                    <div className={`flex flex-col p-4 leading-1.5 max-w-[80%] ${msg.isOwn ? 'bg-blue-800 rounded-s-xl rounded-ee-xl' : msg.isAI ? 'bg-blue-900/30 rounded-e-xl rounded-es-xl' : 'bg-zinc-900 rounded-e-xl rounded-es-xl'}`}>
-                                        {msg.isFile ? (
-                                            renderFileMessage(msg)
-                                        ) : (
-                                            <div className={`text-sm font-semibold ${msg.isOwn ? 'text-white' : msg.isAI ? 'text-blue-100' : 'text-gray-900 dark:text-white'} whitespace-pre-wrap break-words`}>
-                                                {msg.decryptionError ? (
-                                                    <div className="flex items-center gap-2 text-orange-300">
-                                                        <span>⚠️</span>
-                                                        <span className="italic">{msg.content}</span>
-                                                    </div>
-                                                ) : (
-                                                    <ReactMarkdown
-                                                        components={{
-                                                            pre({ node, ...props }) {
-                                                                return (
-                                                                    <div className="my-2 overflow-x-auto max-w-full rounded-md">
-                                                                        <pre className="whitespace-pre max-w-full" {...props} />
-                                                                    </div>
-                                                                );
-                                                            },
-                                                            code({ node, inline, className, children, ...props }) {
-                                                                const match = /language-(\w+)/.exec(className || '');
-                                                                if (!inline && match) {
+                                    <div className={`flex flex-col p-4 leading-1.5 ${msg.isOwn ? 'bg-blue-800 rounded-s-xl rounded-ee-xl' : msg.isAI ? 'bg-blue-900/30 rounded-e-xl rounded-es-xl' : 'bg-zinc-900 rounded-e-xl rounded-es-xl'}`}>
+                                        <div className={`text-sm font-semibold ${msg.isOwn ? 'text-white' : msg.isAI ? 'text-blue-100' : 'text-gray-900 dark:text-white'} inline-block max-w-[60%] min-w-[4ch] whitespace-normal break-words`}>
+                                            {msg.isFile ? (
+                                                renderFileMessage(msg)
+                                            ) : (
+                                                <div className={`text-sm font-semibold ${msg.isOwn ? 'text-white' : msg.isAI ? 'text-blue-100' : 'text-gray-900 dark:text-white'} whitespace-pre-wrap break-words`}>
+                                                    {msg.decryptionError ? (
+                                                        <div className="flex items-center gap-2 text-orange-300">
+                                                            <span>⚠️</span>
+                                                            <span className="italic">{msg.content}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <ReactMarkdown
+                                                            components={{
+                                                                pre({ node, ...props }) {
                                                                     return (
                                                                         <div className="my-2 overflow-x-auto max-w-full rounded-md">
-                                                                            <SyntaxHighlighter
-                                                                                style={dracula}
-                                                                                language={match[1]}
-                                                                                PreTag="div"
-                                                                                className="!max-w-none"
-                                                                                {...props}
-                                                                            >
-                                                                                {String(children).replace(/\n$/, '')}
-                                                                            </SyntaxHighlighter>
+                                                                            <pre className="whitespace-pre max-w-full" {...props} />
                                                                         </div>
                                                                     );
+                                                                },
+                                                                code({ node, inline, className, children, ...props }) {
+                                                                    const match = /language-(\w+)/.exec(className || '');
+                                                                    if (!inline && match) {
+                                                                        return (
+                                                                            <div className="my-2 overflow-x-auto max-w-full rounded-md">
+                                                                                <SyntaxHighlighter
+                                                                                    style={dracula}
+                                                                                    language={match[1]}
+                                                                                    PreTag="div"
+                                                                                    className="!max-w-none"
+                                                                                    {...props}
+                                                                                >
+                                                                                    {String(children).replace(/\n$/, '')}
+                                                                                </SyntaxHighlighter>
+                                                                            </div>
+                                                                        );
+                                                                    }
+                                                                    return (
+                                                                        <code className="break-words whitespace-pre-wrap px-1 rounded bg-black/10" {...props}>
+                                                                            {children}
+                                                                        </code>
+                                                                    );
+                                                                },
+                                                                p({ node, children, ...props }) {
+                                                                    return <p className="whitespace-pre-wrap break-words" {...props}>{children}</p>;
                                                                 }
-                                                                return (
-                                                                    <code className="break-words whitespace-pre-wrap px-1 rounded bg-black/10" {...props}>
-                                                                        {children}
-                                                                    </code>
-                                                                );
-                                                            },
-                                                            p({ node, children, ...props }) {
-                                                                return <p className="whitespace-pre-wrap break-words" {...props}>{children}</p>;
-                                                            }
-                                                        }}
-                                                    >
-                                                        {msg.content}
-                                                    </ReactMarkdown>
-                                                )}
-                                            </div>
-                                        )}
+                                                            }}
+                                                        >
+                                                            {msg.content}
+                                                        </ReactMarkdown>
+                                                    )}
+                                                </div>
+                                            )}
 
-                                        {msg.isFile && encryptionStatus && (
-                                            <div className="mt-2 flex justify-end">
-                                                <span
-                                                    className={`text-xs ${encryptionStatus.className} bg-black/30 px-2 py-1 rounded-full`}
-                                                    title={encryptionStatus.tooltip}
-                                                >
-                                                    {encryptionStatus.icon} {encryptionStatus.tooltip}
-                                                </span>
-                                            </div>
-                                        )}
+                                            {msg.isFile && encryptionStatus && (
+                                                <div className="mt-2 flex justify-end">
+                                                    <span
+                                                        className={`text-xs ${encryptionStatus.className} bg-black/30 px-2 py-1 rounded-full`}
+                                                        title={encryptionStatus.tooltip}
+                                                    >
+                                                        {encryptionStatus.icon} {encryptionStatus.tooltip}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {msg.decryptionError && (
