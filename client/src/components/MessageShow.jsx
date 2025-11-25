@@ -191,16 +191,16 @@ const MessageShow = ({
                                                 </span>
                                             ) : msg.isOwn ? "You" : `Anonymous`}
                                         </span>
-                                        
+
                                         {encryptionStatus && !msg.isFile && !msg.isAI && (
-                                            <span 
+                                            <span
                                                 className={`text-xs ${encryptionStatus.className}`}
                                                 title={encryptionStatus.tooltip}
                                             >
                                                 {encryptionStatus.icon}
                                             </span>
                                         )}
-                                        
+
                                         <span className="text-sm sujoy1 font-normal text-gray-500 dark:text-gray-400">
                                             {formatTime(msg.timestamp)}
                                         </span>
@@ -213,11 +213,11 @@ const MessageShow = ({
                                         </div>
                                     )}
 
-                                    <div className={`flex flex-col p-4 leading-1.5 ${msg.isOwn ? 'bg-blue-800 rounded-s-xl rounded-ee-xl' : msg.isAI ? 'bg-blue-900/30 rounded-e-xl rounded-es-xl' : 'bg-zinc-900 rounded-e-xl rounded-es-xl'}`}>
+                                    <div className={`flex flex-col p-4 leading-1.5 max-w-[80%] ${msg.isOwn ? 'bg-blue-800 rounded-s-xl rounded-ee-xl' : msg.isAI ? 'bg-blue-900/30 rounded-e-xl rounded-es-xl' : 'bg-zinc-900 rounded-e-xl rounded-es-xl'}`}>
                                         {msg.isFile ? (
                                             renderFileMessage(msg)
                                         ) : (
-                                            <div className={`text-sm font-semibold ${msg.isOwn ? 'text-white' : msg.isAI ? 'text-blue-100' : 'text-gray-900 dark:text-white'}`}>
+                                            <div className={`text-sm font-semibold ${msg.isOwn ? 'text-white' : msg.isAI ? 'text-blue-100' : 'text-gray-900 dark:text-white'} whitespace-pre-wrap break-words`}>
                                                 {msg.decryptionError ? (
                                                     <div className="flex items-center gap-2 text-orange-300">
                                                         <span>⚠️</span>
@@ -226,22 +226,38 @@ const MessageShow = ({
                                                 ) : (
                                                     <ReactMarkdown
                                                         components={{
+                                                            pre({ node, ...props }) {
+                                                                return (
+                                                                    <div className="my-2 overflow-x-auto max-w-full rounded-md">
+                                                                        <pre className="whitespace-pre max-w-full" {...props} />
+                                                                    </div>
+                                                                );
+                                                            },
                                                             code({ node, inline, className, children, ...props }) {
                                                                 const match = /language-(\w+)/.exec(className || '');
-                                                                return !inline && match ? (
-                                                                    <SyntaxHighlighter
-                                                                        style={dracula}
-                                                                        language={match[1]}
-                                                                        PreTag="div"
-                                                                        {...props}
-                                                                    >
-                                                                        {String(children).replace(/\n$/, '')}
-                                                                    </SyntaxHighlighter>
-                                                                ) : (
-                                                                    <code className={className} {...props}>
+                                                                if (!inline && match) {
+                                                                    return (
+                                                                        <div className="my-2 overflow-x-auto max-w-full rounded-md">
+                                                                            <SyntaxHighlighter
+                                                                                style={dracula}
+                                                                                language={match[1]}
+                                                                                PreTag="div"
+                                                                                className="!max-w-none"
+                                                                                {...props}
+                                                                            >
+                                                                                {String(children).replace(/\n$/, '')}
+                                                                            </SyntaxHighlighter>
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                                return (
+                                                                    <code className="break-words whitespace-pre-wrap px-1 rounded bg-black/10" {...props}>
                                                                         {children}
                                                                     </code>
                                                                 );
+                                                            },
+                                                            p({ node, children, ...props }) {
+                                                                return <p className="whitespace-pre-wrap break-words" {...props}>{children}</p>;
                                                             }
                                                         }}
                                                     >
@@ -250,10 +266,10 @@ const MessageShow = ({
                                                 )}
                                             </div>
                                         )}
-                                        
+
                                         {msg.isFile && encryptionStatus && (
                                             <div className="mt-2 flex justify-end">
-                                                <span 
+                                                <span
                                                     className={`text-xs ${encryptionStatus.className} bg-black/30 px-2 py-1 rounded-full`}
                                                     title={encryptionStatus.tooltip}
                                                 >
@@ -262,7 +278,7 @@ const MessageShow = ({
                                             </div>
                                         )}
                                     </div>
-                                    
+
                                     {msg.decryptionError && (
                                         <div className="text-xs mt-1 sujoy2">
                                             This message could not be decrypted. It may be from a different room session.
