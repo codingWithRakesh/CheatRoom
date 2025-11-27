@@ -80,17 +80,39 @@ class CryptoUtils {
 
     static async encryptText(text, publicKeyBase64) {
         try {
+            if (!publicKeyBase64) throw new Error("Missing publicKeyBase64");
             const publicKey = await this.importPublicKey(publicKeyBase64);
+
+            const aesKey = await window.crypto.subtle.generateKey(
+                { name: "AES-GCM", length: 256 },
+                true,
+                ["encrypt", "decrypt"]
+            );
+
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
             const encoder = new TextEncoder();
             const data = encoder.encode(text);
 
-            const encrypted = await window.crypto.subtle.encrypt(
-                { name: "RSA-OAEP" },
-                publicKey,
+            const cipherBuffer = await window.crypto.subtle.encrypt(
+                { name: "AES-GCM", iv },
+                aesKey,
                 data
             );
 
-            return this.arrayBufferToBase64(encrypted);
+            const rawAesKey = await window.crypto.subtle.exportKey("raw", aesKey);
+            const encryptedAesKeyBuffer = await window.crypto.subtle.encrypt(
+                { name: "RSA-OAEP" },
+                publicKey,
+                rawAesKey
+            );
+
+            const payload = {
+                iv: this.arrayBufferToBase64(iv),
+                ciphertext: this.arrayBufferToBase64(cipherBuffer),
+                encryptedKey: this.arrayBufferToBase64(encryptedAesKeyBuffer)
+            };
+
+            return JSON.stringify(payload);
         } catch (error) {
             console.error("Error encrypting text:", error);
             throw error;
@@ -99,17 +121,49 @@ class CryptoUtils {
 
     static async decryptText(encryptedTextBase64, privateKeyBase64) {
         try {
-            const privateKey = await this.importPrivateKey(privateKeyBase64);
-            const encryptedData = this.base64ToArrayBuffer(encryptedTextBase64);
+            if (!privateKeyBase64) throw new Error("Missing privateKeyBase64");
+            let payload;
+            try {
+                payload = typeof encryptedTextBase64 === "string"
+                    ? JSON.parse(encryptedTextBase64)
+                    : encryptedTextBase64;
+            } catch (e) {
+                throw new Error("Malformed encrypted payload (expected JSON string).");
+            }
 
-            const decrypted = await window.crypto.subtle.decrypt(
+            const { iv: ivB64, ciphertext: ctB64, encryptedKey: encKeyB64 } = payload;
+            if (!ivB64 || !ctB64 || !encKeyB64) {
+                throw new Error("Encrypted payload missing fields");
+            }
+
+            const privateKey = await this.importPrivateKey(privateKeyBase64);
+
+            const encKeyBuf = this.base64ToArrayBuffer(encKeyB64);
+            const rawAesKeyBuffer = await window.crypto.subtle.decrypt(
                 { name: "RSA-OAEP" },
                 privateKey,
-                encryptedData
+                encKeyBuf
+            );
+
+            const aesKey = await window.crypto.subtle.importKey(
+                "raw",
+                rawAesKeyBuffer,
+                { name: "AES-GCM" },
+                false,
+                ["decrypt"]
+            );
+
+            const iv = new Uint8Array(this.base64ToArrayBuffer(ivB64));
+            const ctBuffer = this.base64ToArrayBuffer(ctB64);
+
+            const decryptedBuffer = await window.crypto.subtle.decrypt(
+                { name: "AES-GCM", iv },
+                aesKey,
+                ctBuffer
             );
 
             const decoder = new TextDecoder();
-            return decoder.decode(decrypted);
+            return decoder.decode(decryptedBuffer);
         } catch (error) {
             console.error("Error decrypting text:", error);
             throw error;
@@ -118,11 +172,12 @@ class CryptoUtils {
 
     static isEncrypted(content) {
         if (!content || typeof content !== 'string') return false;
-        
-        const isBase64 = /^[A-Za-z0-9+/]*={0,2}$/.test(content);
-        const isLongEnough = content.length > 100;
-        
-        return isBase64 && isLongEnough;
+        try {
+            const parsed = JSON.parse(content);
+            return !!(parsed.iv && parsed.ciphertext && parsed.encryptedKey);
+        } catch (e) {
+            return false;
+        }
     }
 }
 

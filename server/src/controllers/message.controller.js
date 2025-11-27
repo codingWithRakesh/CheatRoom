@@ -95,7 +95,55 @@ const uploadFile = asyncHandler(async (req, res) => {
         'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         'text/plain',
         'text/csv',
-        'application/rtf'
+        'application/rtf',
+
+        'application/zip',
+        'application/x-zip-compressed',
+        'multipart/x-zip',
+        'application/x-compressed',
+
+        'application/json',
+        'application/xml',
+        'text/xml',
+        'application/x-yaml',
+        'text/yaml',
+        'text/x-yaml',
+        'text/html',
+        'text/css',
+
+        'text/javascript',
+        'application/javascript',
+        'application/x-javascript',
+        'application/x-typescript',
+        'text/typescript',
+
+        'text/x-c',
+        'text/x-csrc',
+        'text/x-c++',
+        'text/x-c++src',
+
+        'text/x-java-source',
+
+        'text/x-python',
+
+        'text/x-php',
+        'application/x-httpd-php',
+
+        'text/x-ruby',
+
+        'text/x-go',
+
+        'text/x-rustsrc',
+
+        'text/x-sql',
+        'application/sql',
+
+        'text/x-shellscript',
+        'application/x-sh',
+        'application/x-bash',
+
+        'text/markdown',
+        'text/x-markdown'
     ];
 
     if (![...allowedImageVideoAudioTypes, ...allowedDocumentTypes].includes(mimetype)) {
@@ -169,7 +217,7 @@ const uploadFile = asyncHandler(async (req, res) => {
         isFile: true,
         fileName: originalname || `file_${Date.now()}`,
         fileType: mimetype,
-        fileId : fileId ? fileId : null
+        fileId: fileId ? fileId : null
     });
 
     if (!message) throw new ApiError(500, "Failed to send message");

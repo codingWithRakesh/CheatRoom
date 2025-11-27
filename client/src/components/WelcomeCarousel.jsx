@@ -39,7 +39,6 @@ export default function WelcomeCarousel() {
 
   return (
     <div className="relative max-w-4xl mx-auto flex flex-col text-center items-center justify-center p-8">
-      {/* Swiper Slides */}
       <Swiper
         ref={swiperRef}
         spaceBetween={50}
@@ -53,7 +52,6 @@ export default function WelcomeCarousel() {
             key={index}
             className="flex flex-col items-center text-center"
           >
-            {/* Circular Image */}
             <div className="w-54 h-54 md:w-72 md:h-72 flex mx-auto items-center justify-center bg-blue-50 rounded-full mb-8">
               <img
                 src={slide.image}
@@ -62,7 +60,6 @@ export default function WelcomeCarousel() {
               />
             </div>
 
-            {/* Slide Text */}
             <h2 className="text-2xl sujoy1 md:text-4xl font-normal text-white mb-2">
               {slide.title}
             </h2>
@@ -71,7 +68,6 @@ export default function WelcomeCarousel() {
         ))}
       </Swiper>
 
-      {/* Navigation Arrows */}
       <button
         onClick={() => swiperRef.current.swiper.slidePrev()}
         className="absolute cursor-pointer left-0 md:left-38 top-1/3 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition-colors"
@@ -86,7 +82,6 @@ export default function WelcomeCarousel() {
         <FiChevronRight className="w-6 h-6 text-gray-600" />
       </button>
 
-      {/* Pagination Dots */}
       <div className="flex gap-2 mt-8">
         {slides.map((_, index) => (
           <button

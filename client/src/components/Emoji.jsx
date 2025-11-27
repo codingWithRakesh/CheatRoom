@@ -56,7 +56,6 @@ export default function Emoji({ onSelect }) {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.8, y: 10, transition: { duration: 0.15 } }}
                         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                        // --- THIS LINE IS CHANGED ---
                         className="absolute bottom-16 left-1/4 z-50 -translate-x-1/4 origin-bottom"
                     >
                         <Suspense fallback={<PickerSpinner />}>

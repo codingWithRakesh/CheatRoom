@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from './Navbar'; // Assuming this component exists
+import Navbar from './Navbar';
 import { FaServer, FaLightbulb, FaRocket } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- Static Data for Dynamic Content ---
 const statusSteps = [
     'Waking up the server...',
     'Establishing secure connection...',
@@ -21,40 +20,34 @@ const proTips = [
 ];
 
 const Loading = () => {
-    // --- STATE MANAGEMENT ---
     const [statusText, setStatusText] = useState(statusSteps[0]);
     const [tipText, setTipText] = useState(proTips[0]);
     const [progress, setProgress] = useState(10);
 
-    // --- EFFECTS FOR DYNAMIC CONTENT AND PROGRESS ---
     useEffect(() => {
-        // Cycle through status messages
         let stepIndex = 0;
         const statusInterval = setInterval(() => {
             stepIndex = (stepIndex + 1) % statusSteps.length;
             setStatusText(statusSteps[stepIndex]);
-        }, 2500); // Change status every 2.5 seconds
+        }, 2500);
 
-        // Simulate progress bar filling up
         const progressInterval = setInterval(() => {
             setProgress(prev => {
-                if (prev >= 95) { // Stop at 95% to feel like it's finishing
+                if (prev >= 95) { 
                     clearInterval(progressInterval);
                     return 95;
                 }
                 const randomIncrement = Math.floor(Math.random() * 8) + 2;
                 return Math.min(prev + randomIncrement, 95);
             });
-        }, 800); // Update progress every 0.8 seconds
+        }, 800);
 
-        // Cycle through pro tips
         let tipIndex = 0;
         const tipInterval = setInterval(() => {
             tipIndex = (tipIndex + 1) % proTips.length;
             setTipText(proTips[tipIndex]);
-        }, 5000); // Change tip every 5 seconds
+        }, 5000);
 
-        // Cleanup function to clear intervals when the component unmounts
         return () => {
             clearInterval(statusInterval);
             clearInterval(progressInterval);
@@ -72,7 +65,6 @@ const Loading = () => {
                     transition={{ duration: 0.5 }}
                     className="w-full max-w-2xl mx-auto space-y-12"
                 >
-                    {/* --- MAIN HEADER & PROGRESS BAR --- */}
                     <div className="text-center">
                         <FaRocket className="mx-auto text-purple-500 text-5xl mb-6 animate-pulse" />
                         <h1 className="text-6xl sujoy1 font-bold text-gray-100 mb-4">
@@ -92,7 +84,6 @@ const Loading = () => {
                         </AnimatePresence>
                     </div>
 
-                    {/* Progress Bar */}
                     <div className="w-full bg-zinc-800 rounded-full h-2.5 overflow-hidden">
                         <motion.div
                             className="bg-gradient-to-r from-purple-600 to-indigo-500 h-2.5 rounded-full"
@@ -102,9 +93,7 @@ const Loading = () => {
                         />
                     </div>
 
-                    {/* --- INFORMATION CARDS --- */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* "Why the wait?" Card */}
                         <div className="bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-xl p-6">
                             <h3 className="text-3xl sujoy1 font-semibold text-sky-400 mb-3 flex items-center">
                                 <FaServer className="w-6 h-6 mr-3" />
@@ -115,7 +104,6 @@ const Loading = () => {
                             </p>
                         </div>
 
-                        {/* "Pro Tip" Card */}
                         <div className="bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-xl p-6">
                             <h3 className="text-3xl sujoy1 font-semibold text-teal-300 mb-3 flex items-center">
                                 <FaLightbulb className="w-6 h-6 mr-3" />

@@ -6,7 +6,6 @@ const Home = () => {
   return (
     <div className="min-h-screen w-full flex flex-col justify-between text-center items-center p-2 overflow-y-auto">
       
-      {/* Heading Section */}
       <div className="w-full p-0">
       <div className="Heading-text flex flex-col mx-auto w-full md:w-2/3 text-center mt-28">
         <h2 className="text-white sujoy1 text-5xl">
@@ -21,10 +20,8 @@ const Home = () => {
         </p>
       </div>
 
-      {/* Main Content Section */}
       <div className="w-full h-full p-2 flex flex-col lg:flex-row gap-8 justify-center items-center mt-6">
         <ContentDiv alignment="left" />
-        {/* <div className="bg-zinc-800 h-72 w-1 rounded-2xl hidden lg:block"></div> */}
         <ContentDiv alignment="right" />
       </div>
 

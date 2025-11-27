@@ -45,7 +45,7 @@ const MessageInput = ({
     return (
         <div className="w-full">
             <div className="w-full flex flex-col">
-                
+
                 {replyTo && (
                     <div className="bg-zinc-900 rounded-t-lg p-2 px-3 text-sm relative border-b border-zinc-700">
                         <div className="flex justify-between items-center">
@@ -61,7 +61,7 @@ const MessageInput = ({
                             </button>
                         </div>
                         <p className="text-gray-300 sujoy2 truncate mt-1">
-                           "{safeTruncateText(replyTo.content, 90)}"
+                            "{safeTruncateText(replyTo.content, 90)}"
                         </p>
                     </div>
                 )}
@@ -91,13 +91,32 @@ const MessageInput = ({
                             ref={fileInputRef}
                             onChange={handleFileSelect}
                             className="hidden"
-                            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.rtf"
+                            accept="
+                                image/*,
+                                .pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.rtf,.zip,
+                                .js,.jsx,.ts,.tsx,
+                                .html,.css,
+                                .json,.xml,.yaml,.yml,
+                                .py,
+                                .java,
+                                .c,.cpp,.h,.hpp,
+                                .cs,
+                                .php,
+                                .rb,
+                                .go,
+                                .rs,
+                                .kt,.kts,
+                                .sh,.bash,
+                                .sql,
+                                .md,
+                                .swift
+                            "
                         />
                         <Emoji onSelect={(emoji) => setMessageInput((prev) => prev + emoji)} />
                     </div>
-                    
+
                     <div className="flex-1 relative">
-                         {isAIEnabled && (
+                        {isAIEnabled && (
                             <span className="text-xs text-blue-300 bg-blue-900/50 px-2 py-0.5 rounded-full absolute -top-5 left-1">
                                 AI Assistant
                             </span>

@@ -28,7 +28,6 @@ const SidebarChat = () => {
     return (
         <div className="hidden lg:flex h-[100%] w-[20%] border-r border-gray-700 px-8 py-12 flex-col items-center justify-between">
             <div className="flex flex-col items-center">
-                {/* Profile Section */}
                 <div className="relative mb-8">
                     <div className="h-[10rem] w-[10rem] overflow-hidden rounded-full border-4 border-green-900 shadow-lg">
                         <img 
@@ -39,7 +38,6 @@ const SidebarChat = () => {
                     </div>
                 </div>
 
-                {/* Room Code Section */}
                 <div className="text-center mb-4">
                     <h3 className="text-2xl font-medium text-gray-200 sujoy1">
                         ROOM CODE
@@ -62,7 +60,6 @@ const SidebarChat = () => {
                     </div>
                 </div>
 
-                {/* Room Info */}
                 <div className="text-center">
                     <p className="text-md sujoy2 text-gray-500 dark:text-gray-400">
                         Share this code with others to join the chat
@@ -70,7 +67,6 @@ const SidebarChat = () => {
                 </div>
             </div>
             
-            {/* Exit Button */}
             <div className="exitButton w-full max-w-xs">
                 <button
                     onClick={handleExit}

@@ -1,9 +1,9 @@
 import React from 'react'
-import { LuReplyAll } from 'react-icons/lu';
+import { LuFileJson, LuReplyAll } from 'react-icons/lu';
 import { MdDone } from 'react-icons/md';
 import { TbCopy } from 'react-icons/tb';
 import ProfileColor from './ProfileColor';
-import { FaRobot } from 'react-icons/fa6';
+import { FaCss3Alt, FaHtml5, FaJava, FaPython, FaReact, FaRobot, FaTerminal } from 'react-icons/fa6';
 import { FaFilePdf } from "react-icons/fa";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -11,6 +11,9 @@ import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { RiFileExcel2Fill, RiFileWord2Fill } from 'react-icons/ri';
 import { PiMicrosoftPowerpointLogoFill } from "react-icons/pi";
 import view1 from "../assets/images/view1.jpg";
+import { IoDocumentTextOutline, IoLogoJavascript } from 'react-icons/io5';
+import { BsFiletypeCsv } from 'react-icons/bs';
+import { CiFileOn } from "react-icons/ci";
 
 const MessageShow = ({
     messages,
@@ -89,12 +92,88 @@ const MessageShow = ({
             } else {
 
                 const getFileIcon = (fileType) => {
-                    if (fileType.includes('pdf')) return <FaFilePdf />;
-                    if (fileType.includes('word')) return <RiFileWord2Fill />;
-                    if (fileType.includes('excel') || fileType.includes('sheet')) return <RiFileExcel2Fill />;
-                    if (fileType.includes('powerpoint') || fileType.includes('presentation')) return <PiMicrosoftPowerpointLogoFill />;
-                    return '📁';
+                    fileType = fileType.toLowerCase();
+
+                    if (fileType.includes("pdf")) return <FaFilePdf />;
+
+                    if (fileType.includes("word") || fileType.includes("doc"))
+                        return <RiFileWord2Fill />;
+
+                    if (
+                        fileType.includes("excel") ||
+                        fileType.includes("sheet") ||
+                        fileType.includes("xls")
+                    )
+                        return <RiFileExcel2Fill />;
+
+                    if (
+                        fileType.includes("powerpoint") ||
+                        fileType.includes("presentation") ||
+                        fileType.includes("ppt")
+                    )
+                        return <PiMicrosoftPowerpointLogoFill />;
+
+                    if (
+                        fileType.includes("text") ||
+                        fileType.includes("plain") ||
+                        fileType.includes(".txt")
+                    )
+                        return <IoDocumentTextOutline />;
+
+                    if (fileType.includes("csv")) return <BsFiletypeCsv />;
+
+                    if (fileType.includes("rtf")) return <IoDocumentTextOutline />;
+
+                    if (fileType.includes("html")) return <FaHtml5 />;
+
+                    if (fileType.includes("css")) return <FaCss3Alt />;
+
+                    if (fileType.includes("javascript") || fileType.includes(".js"))
+                        return <IoLogoJavascript />;
+
+                    if (fileType.includes("typescript") || fileType.includes(".ts"))
+                        return <SiTypescript />;
+
+                    if (fileType.includes("json")) return <LuFileJson />;
+
+                    if (fileType.includes(".jsx") || fileType.includes(".tsx"))
+                        return <FaReact />;
+
+                    if (fileType.includes("python") || fileType.includes(".py"))
+                        return <FaPython />;
+
+                    if (fileType.includes("java")) return <FaJava />;
+
+                    // C / C++
+                    // if (fileType.includes(".c") || fileType.includes(".h"))
+                    //     return <SiC />;
+
+                    if (fileType.includes(".cpp") || fileType.includes(".cc"))
+                        return <SiCplusplus />;
+
+                    if (fileType.includes(".cs")) return <SiCsharp />;
+
+                    if (fileType.includes("php")) return <SiPhp />;
+
+                    if (fileType.includes("ruby") || fileType.includes(".rb"))
+                        return <SiRuby />;
+
+                    if (fileType.includes("go")) return <SiGo />;
+
+                    if (fileType.includes("swift")) return <SiSwift />;
+
+                    if (fileType.includes("kt")) return <SiKotlin />;
+
+                    if (fileType.includes("sh")) return <FaTerminal />;
+
+                    if (fileType.includes("xml")) return <SiXml />;
+
+                    if (fileType.includes("yaml") || fileType.includes("yml"))
+                        return <SiYaml />;
+
+                    return <CiFileOn />;
                 };
+
 
                 const formatFileSize = (bytes) => {
                     if (bytes === 0) return '0 Bytes';
@@ -143,7 +222,7 @@ const MessageShow = ({
     };
 
     return (
-        <div className="messageDivShow w-full flex-1 overflow-auto mb-4 px-4">
+        <div className="messageDivShow w-full flex-1 overflow-y-auto overflow-x-hidden mb-4 px-4">
             {messages.length === 0 ? (
                 <div className="text-gray-400 sujoy2 text-center py-8">
                     No messages yet. Start the conversation!
@@ -181,7 +260,11 @@ const MessageShow = ({
 
                             <div className={`flex items-start gap-2.5 ${msg.isOwn ? 'flex-row-reverse' : ''}`}>
                                 <ProfileColor userId={msg.senderId} isAI={msg.isAI} />
-                                <div className={`flex flex-col gap-1 max-w-[80%] ${msg.isOwn ? 'items-end' : ''}`}>
+                                <div
+                                    className={`flex flex-col gap-1 w-full max-w-3xl ${msg.isOwn ? 'items-end' : ''
+                                        }`}
+                                >
+
                                     <div className={`flex gap-1 items-center ${msg.isOwn ? 'flex-row-reverse space-x-reverse' : 'space-x-2'} rtl:space-x-reverse`}>
                                         <span className="text-xl font-semibold sujoy1 text-white">
                                             {msg.isAI ? (
@@ -213,12 +296,37 @@ const MessageShow = ({
                                         </div>
                                     )}
 
-                                    <div className={`flex flex-col p-4 leading-1.5 ${msg.isOwn ? 'bg-blue-800 rounded-s-xl rounded-ee-xl' : msg.isAI ? 'bg-blue-900/30 rounded-e-xl rounded-es-xl' : 'bg-zinc-900 rounded-e-xl rounded-es-xl'}`}>
-                                        <div className={`text-sm font-semibold ${msg.isOwn ? 'text-white' : msg.isAI ? 'text-blue-100' : 'text-gray-900 dark:text-white'} inline-block max-w-[60%] min-w-[4ch] whitespace-normal break-words`}>
-                                            {msg.isFile ? (
-                                                renderFileMessage(msg)
-                                            ) : (
-                                                <div className={`text-sm font-semibold ${msg.isOwn ? 'text-white' : msg.isAI ? 'text-blue-100' : 'text-gray-900 dark:text-white'} whitespace-pre-wrap break-words`}>
+                                    <div
+                                        className={`flex flex-col leading-1.5 ${msg.isOwn
+                                            ? 'bg-blue-800 rounded-s-xl rounded-ee-xl'
+                                            : msg.isAI
+                                                ? 'bg-blue-900/30 rounded-e-xl rounded-es-xl'
+                                                : 'bg-zinc-900 rounded-e-xl rounded-es-xl'
+                                            }`}
+                                    >
+                                        {msg.isFile ? (
+                                            <>
+                                                <div className="p-3">
+                                                    {renderFileMessage(msg)}
+                                                </div>
+
+                                                {encryptionStatus && (
+                                                    <div className="px-3 pb-2 flex justify-end">
+                                                        <span
+                                                            className={`text-xs ${encryptionStatus.className} bg-black/30 px-2 py-1 rounded-full`}
+                                                            title={encryptionStatus.tooltip}
+                                                        >
+                                                            {encryptionStatus.icon} {encryptionStatus.tooltip}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <div className="p-4">
+                                                <div
+                                                    className={`text-sm font-semibold ${msg.isOwn ? 'text-white' : msg.isAI ? 'text-blue-100' : 'text-gray-900 dark:text-white'
+                                                        } whitespace-pre-wrap break-words`}
+                                                >
                                                     {msg.decryptionError ? (
                                                         <div className="flex items-center gap-2 text-orange-300">
                                                             <span>⚠️</span>
@@ -252,34 +360,31 @@ const MessageShow = ({
                                                                         );
                                                                     }
                                                                     return (
-                                                                        <code className="break-words whitespace-pre-wrap px-1 rounded bg-black/10" {...props}>
+                                                                        <code
+                                                                            className="break-words whitespace-pre-wrap px-1 rounded bg-black/10"
+                                                                            {...props}
+                                                                        >
                                                                             {children}
                                                                         </code>
                                                                     );
                                                                 },
                                                                 p({ node, children, ...props }) {
-                                                                    return <p className="whitespace-pre-wrap break-words" {...props}>{children}</p>;
-                                                                }
+                                                                    return (
+                                                                        <p className="whitespace-pre-wrap break-words" {...props}>
+                                                                            {children}
+                                                                        </p>
+                                                                    );
+                                                                },
                                                             }}
                                                         >
                                                             {msg.content}
                                                         </ReactMarkdown>
                                                     )}
                                                 </div>
-                                            )}
-
-                                            {msg.isFile && encryptionStatus && (
-                                                <div className="mt-2 flex justify-end">
-                                                    <span
-                                                        className={`text-xs ${encryptionStatus.className} bg-black/30 px-2 py-1 rounded-full`}
-                                                        title={encryptionStatus.tooltip}
-                                                    >
-                                                        {encryptionStatus.icon} {encryptionStatus.tooltip}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
+                                            </div>
+                                        )}
                                     </div>
+
 
                                     {msg.decryptionError && (
                                         <div className="text-xs mt-1 sujoy2">
