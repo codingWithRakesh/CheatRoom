@@ -33,7 +33,7 @@ const ContentDiv = ({ alignment }) => {
     const handleGenerateNewRoom = async () => {
         try {
             setLocalLoading(true);
-            const code = await generateRoomCode();
+            const code = await generateRoomCode(visitorId);
             setLocalRoomCode(code);
             setIsCopied(false);
         } catch (err) {

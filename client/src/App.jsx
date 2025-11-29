@@ -17,8 +17,13 @@ function App() {
   useEffect(() => {
     const initializeApp = async () => {
 
-      const fp = await FingerprintJS.load();
-      const { visitorId } = await fp.get();
+      let visitorId = localStorage.getItem("visitorId");
+      if (!visitorId) {
+        const fp = await FingerprintJS.load();
+        const result = await fp.get();
+        visitorId = result.visitorId;
+        localStorage.setItem("visitorId", visitorId);
+      }
 
       await registerFingerprint(visitorId);
 

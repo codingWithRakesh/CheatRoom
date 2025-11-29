@@ -7,20 +7,23 @@ import { io } from "../socket/socket.js";
 import { GoogleGenAI } from "@google/genai";
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { uploadToImageKit } from "../utils/imageKit.js"
-import { uploadOnGoogleDrive } from "../utils/googleDrive.js"
 import sharp from "sharp";
 import zlib from "zlib";
+import { CryptoUtils } from "../utils/cryptoUtils.js";
 
 const getMessages = asyncHandler(async (req, res) => {
     const { code } = req.params;
-    if (!code) {
-        throw new ApiError(400, "Room code is required");
+
+    if (!code || !/^[0-9]{6}$/.test(code)) {
+        throw new ApiError(400, "Room code must be a 6-digit number");
     }
+
+    const codeHash = CryptoUtils.hashRoomCode(code);
 
     const messages = await Room.aggregate([
         {
             $match: {
-                code
+                codeHash
             }
         },
         {
@@ -41,7 +44,13 @@ const getMessages = asyncHandler(async (req, res) => {
                     {
                         $addFields: {
                             parentmessageContent: { $arrayElemAt: ["$parentMessage.content", 0] },
-                            isReply: { $cond: { if: { $gt: [{ $size: "$parentMessage" }, 0] }, then: true, else: false } }
+                            isReply: {
+                                $cond: {
+                                    if: { $gt: [{ $size: "$parentMessage" }, 0] },
+                                    then: true,
+                                    else: false
+                                }
+                            }
                         }
                     },
                     {
@@ -76,74 +85,81 @@ const uploadFile = asyncHandler(async (req, res) => {
     const { buffer, mimetype, originalname, size } = req.file;
     const { senderId, roomCode } = req.body;
 
-    if (!senderId || !roomCode) throw new ApiError(400, "Sender ID and Room Code are required");
+    if (!senderId || !roomCode) {
+        throw new ApiError(400, "Sender ID and Room Code are required");
+    }
+
+    if (!/^[0-9]{6}$/.test(roomCode)) {
+        throw new ApiError(400, "Room code must be a 6-digit number");
+    }
+
     if (!buffer || !mimetype) throw new ApiError(400, "Invalid file");
 
     const allowedImageVideoAudioTypes = [
-        'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
-        'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-msvideo', 'video/x-ms-wmv',
-        'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/webm', 'audio/aac', 'audio/mp4'
+        "image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml",
+        "video/mp4", "video/webm", "video/ogg", "video/quicktime", "video/x-msvideo", "video/x-ms-wmv",
+        "audio/mpeg", "audio/ogg", "audio/wav", "audio/webm", "audio/aac", "audio/mp4"
     ];
 
     const allowedDocumentTypes = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'application/vnd.ms-powerpoint',
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        'text/plain',
-        'text/csv',
-        'application/rtf',
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "text/plain",
+        "text/csv",
+        "application/rtf",
 
-        'application/zip',
-        'application/x-zip-compressed',
-        'multipart/x-zip',
-        'application/x-compressed',
+        "application/zip",
+        "application/x-zip-compressed",
+        "multipart/x-zip",
+        "application/x-compressed",
 
-        'application/json',
-        'application/xml',
-        'text/xml',
-        'application/x-yaml',
-        'text/yaml',
-        'text/x-yaml',
-        'text/html',
-        'text/css',
+        "application/json",
+        "application/xml",
+        "text/xml",
+        "application/x-yaml",
+        "text/yaml",
+        "text/x-yaml",
+        "text/html",
+        "text/css",
 
-        'text/javascript',
-        'application/javascript',
-        'application/x-javascript',
-        'application/x-typescript',
-        'text/typescript',
+        "text/javascript",
+        "application/javascript",
+        "application/x-javascript",
+        "application/x-typescript",
+        "text/typescript",
 
-        'text/x-c',
-        'text/x-csrc',
-        'text/x-c++',
-        'text/x-c++src',
+        "text/x-c",
+        "text/x-csrc",
+        "text/x-c++",
+        "text/x-c++src",
 
-        'text/x-java-source',
+        "text/x-java-source",
 
-        'text/x-python',
+        "text/x-python",
 
-        'text/x-php',
-        'application/x-httpd-php',
+        "text/x-php",
+        "application/x-httpd-php",
 
-        'text/x-ruby',
+        "text/x-ruby",
 
-        'text/x-go',
+        "text/x-go",
 
-        'text/x-rustsrc',
+        "text/x-rustsrc",
 
-        'text/x-sql',
-        'application/sql',
+        "text/x-sql",
+        "application/sql",
 
-        'text/x-shellscript',
-        'application/x-sh',
-        'application/x-bash',
+        "text/x-shellscript",
+        "application/x-sh",
+        "application/x-bash",
 
-        'text/markdown',
-        'text/x-markdown'
+        "text/markdown",
+        "text/x-markdown"
     ];
 
     if (![...allowedImageVideoAudioTypes, ...allowedDocumentTypes].includes(mimetype)) {
@@ -157,13 +173,15 @@ const uploadFile = asyncHandler(async (req, res) => {
         document: 20 * 1024 * 1024  // 20MB
     };
 
-    const room = await Room.findOne({ code: roomCode });
+    const codeHash = CryptoUtils.hashRoomCode(roomCode);
+    const room = await Room.findOne({ codeHash });
     if (!room) throw new ApiError(404, "Room not found");
 
     let processedBuffer = buffer;
     let fileUrl;
+    let fileId;
 
-    if (mimetype.startsWith('image/')) {
+    if (mimetype.startsWith("image/")) {
         if (size > MAX_SIZES.image) throw new ApiError(400, "Image size must be less than 5MB");
 
         const targetQuality = calculateImageQuality(size, 1 * 1024 * 1024);
@@ -178,7 +196,7 @@ const uploadFile = asyncHandler(async (req, res) => {
         if (!result?.secure_url) throw new ApiError(500, "Cloudinary image upload failed");
         fileUrl = result.secure_url;
 
-    } else if (mimetype.startsWith('video/')) {
+    } else if (mimetype.startsWith("video/")) {
         if (size > MAX_SIZES.video) throw new ApiError(400, "Video size must be less than 15MB");
 
         const base64File = bufferToBase64(buffer, mimetype);
@@ -187,7 +205,7 @@ const uploadFile = asyncHandler(async (req, res) => {
         if (!result?.secure_url) throw new ApiError(500, "Cloudinary video upload failed");
         fileUrl = result.secure_url;
 
-    } else if (mimetype.startsWith('audio/')) {
+    } else if (mimetype.startsWith("audio/")) {
         if (size > MAX_SIZES.audio) throw new ApiError(400, "Audio size must be less than 10MB");
 
         const base64File = bufferToBase64(buffer, mimetype);
@@ -204,8 +222,7 @@ const uploadFile = asyncHandler(async (req, res) => {
 
         if (!result?.url) throw new ApiError(500, "ImageKit document upload failed");
         fileUrl = result.url;
-        var fileId = result.fileId;
-
+        fileId = result.fileId;
     } else {
         throw new ApiError(400, "Unsupported file type");
     }
@@ -217,7 +234,7 @@ const uploadFile = asyncHandler(async (req, res) => {
         isFile: true,
         fileName: originalname || `file_${Date.now()}`,
         fileType: mimetype,
-        fileId: fileId ? fileId : null
+        fileId: fileId || null
     });
 
     if (!message) throw new ApiError(500, "Failed to send message");
@@ -235,7 +252,13 @@ const uploadFile = asyncHandler(async (req, res) => {
         {
             $addFields: {
                 parentmessageContent: { $arrayElemAt: ["$parentMessage.content", 0] },
-                isReply: { $cond: { if: { $gt: [{ $size: "$parentMessage" }, 0] }, then: true, else: false } }
+                isReply: {
+                    $cond: {
+                        if: { $gt: [{ $size: "$parentMessage" }, 0] },
+                        then: true,
+                        else: false
+                    }
+                }
             }
         },
         { $project: { parentMessage: 0 } }
@@ -243,7 +266,7 @@ const uploadFile = asyncHandler(async (req, res) => {
 
     room.participants.forEach(participant => {
         if (participant !== senderId) {
-            const socketuserName = `${participant}-${room.code}`;
+            const socketuserName = `${participant}-${roomCode}`; // still using real code
             io.to(socketuserName).emit("message", messagedata[0]);
         }
     });
@@ -290,14 +313,19 @@ const sendMessage = asyncHandler(async (req, res) => {
         throw new ApiError(400, "All fields are required");
     }
 
-    const room = await Room.findOne({ code: roomCode });
+    if (!/^[0-9]{6}$/.test(roomCode)) {
+        throw new ApiError(400, "Room code must be a 6-digit number");
+    }
+
+    const codeHash = CryptoUtils.hashRoomCode(roomCode);
+    const room = await Room.findOne({ codeHash });
 
     if (!room) {
         throw new ApiError(404, "Room not found");
     }
 
     const message = await Message.create({
-        content: content,
+        content,
         senderId,
         roomID: room._id,
         parentMessageId,
@@ -324,7 +352,13 @@ const sendMessage = asyncHandler(async (req, res) => {
         {
             $addFields: {
                 parentmessageContent: { $arrayElemAt: ["$parentMessage.content", 0] },
-                isReply: { $cond: { if: { $gt: [{ $size: "$parentMessage" }, 0] }, then: true, else: false } }
+                isReply: {
+                    $cond: {
+                        if: { $gt: [{ $size: "$parentMessage" }, 0] },
+                        then: true,
+                        else: false
+                    }
+                }
             }
         },
         {
@@ -332,12 +366,11 @@ const sendMessage = asyncHandler(async (req, res) => {
                 parentMessage: 0,
             }
         },
-    ])
+    ]);
 
     room.participants.forEach(participant => {
         if (participant !== senderId) {
-            console.log("Sending message to:", participant);
-            const socketuserName = `${participant}-${room.code}`;
+            const socketuserName = `${participant}-${roomCode}`;
             io.to(socketuserName).emit("message", messagedata[0]);
         }
     });
@@ -347,7 +380,6 @@ const sendMessage = asyncHandler(async (req, res) => {
     if (isAI) {
         try {
             aiResponse = await geminiValue(content);
-            console.log("AI Response:", aiResponse);
             const aiMessage = await Message.create({
                 content: aiResponse,
                 senderId: "ai",
@@ -360,11 +392,10 @@ const sendMessage = asyncHandler(async (req, res) => {
                 ...aiMessage.toObject(),
                 parentmessageContent: messagedata[0].content,
                 isReply: true
-            }
+            };
 
             room.participants.forEach(participant => {
-                console.log("Sending message to:", participant);
-                const socketuserName = `${participant}-${room.code}`;
+                const socketuserName = `${participant}-${roomCode}`;
                 io.to(socketuserName).emit("message", aiMessageData);
             });
         } catch (error) {
@@ -373,7 +404,6 @@ const sendMessage = asyncHandler(async (req, res) => {
     }
 
     res.status(201).json(new ApiResponse(201, messagedata[0], "Message sent successfully"));
-
 });
 
 

@@ -4,6 +4,7 @@ import { ApiError } from "../utils/apiError.js";
 import { Room } from "../models/room.model.js";
 import { PrivateKey } from "../models/privateKeys.model.js"
 import mongoose from "mongoose";
+import { CryptoUtils } from "../utils/cryptoUtils.js";
 
 const createPrivateKey = asyncHandler(async (req, res, next) => {
     const { roomID, privateKey } = req.body;
@@ -84,27 +85,37 @@ const getPrivateKeyByRoomId = asyncHandler(async (req, res, next) => {
 // Get public key by room code
 const getPublicKeyByRoomCode = asyncHandler(async (req, res, next) => {
     const { roomCode } = req.params;
-    if (!roomCode) {
-        throw new ApiError(400, "roomCode is required");
+
+    if (!roomCode || !/^[0-9]{6}$/.test(roomCode)) {
+        throw new ApiError(400, "roomCode must be a 6-digit number");
     }
-    const room = await Room.findOne({ code: roomCode });
+
+    const codeHash = CryptoUtils.hashRoomCode(roomCode);
+
+    const room = await Room.findOne({ codeHash });
     if (!room) {
         throw new ApiError(404, "Room not found");
     }
+
     return res.status(200).json(
         new ApiResponse(200, { publicKey: room.publicKey }, "Public key fetched successfully")
     );
-})
+});
+
 // Get private key by room code
 const getPrivateKeyByRoomCode = asyncHandler(async (req, res, next) => {
     const { roomCode } = req.params;
-    if (!roomCode) {
-        throw new ApiError(400, "roomCode is required");
+
+    if (!roomCode || !/^[0-9]{6}$/.test(roomCode)) {
+        throw new ApiError(400, "roomCode must be a 6-digit number");
     }
+
+    const codeHash = CryptoUtils.hashRoomCode(roomCode);
+
     const room = await Room.aggregate([
         {
             $match: {
-                code: roomCode
+                codeHash
             }
         },
         {
@@ -115,16 +126,24 @@ const getPrivateKeyByRoomCode = asyncHandler(async (req, res, next) => {
                 as: "privateKeyDetails"
             }
         }
-    ])
+    ]);
 
     if (!room || room.length === 0) {
         throw new ApiError(404, "Room not found");
     }
+
     if (!room[0].privateKeyDetails || room[0].privateKeyDetails.length === 0) {
         throw new ApiError(404, "Private key not found for this room");
     }
-    return res.status(200).json(new ApiResponse(200, room[0].privateKeyDetails[0].privateKey, "Private key fetched successfully"));
-})
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            room[0].privateKeyDetails[0].privateKey,
+            "Private key fetched successfully"
+        )
+    );
+});
 
 const deletePrivateKeyById = asyncHandler(async (req, res, next) => {
     const { id } = req.params;

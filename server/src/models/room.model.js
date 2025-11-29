@@ -1,17 +1,19 @@
 import { model, Schema } from 'mongoose';
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
-import { Message } from './message.model.js';
 
 const roomSchema = new Schema({
-  code: {
+  codeHash: {
     type: String,
     required: true,
-    unique: true,
-    match: /^[0-9]{6}$/
+    unique: true
   },
   participants: [{
     type: String
   }],
+  isAdminRoom: {
+    type: Schema.Types.ObjectId,
+    ref: "Fingerprint"
+  },
   publicKey: {
     type: String,
     required: true

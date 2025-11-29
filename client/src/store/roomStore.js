@@ -9,7 +9,7 @@ const roomStore = create((set, get) => ({
     currentRoomCode: null,
     participants: [],
 
-    generateRoomCode: async () => {
+    generateRoomCode: async (visitorId) => {
         set({ isLoading: true, error: null });
         try {
             const keyPair = await CryptoUtils.generateRSAKeyPair();
@@ -18,7 +18,8 @@ const roomStore = create((set, get) => ({
                 `${import.meta.env.VITE_BACKEND_URL}/room/generate`,
                 {
                     publicKey: keyPair.publicKey,
-                    privateKey: keyPair.privateKey
+                    privateKey: keyPair.privateKey,
+                    visitorId: visitorId
                 },
                 {
                     headers: {
