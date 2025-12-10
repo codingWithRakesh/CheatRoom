@@ -1,7 +1,7 @@
 import cron from "node-cron";
-import { Room } from "../models/room.model.js";
-import { Message } from "../models/message.model.js";
-import { PrivateKey } from "../models/privateKeys.model.js";
+import { Room } from "../models/products/room.model.js";
+import { Message } from "../models/products/message.model.js";
+import { PrivateKey } from "../models/products/privateKeys.model.js";
 import { deleteFromCloudinary, getPublicId } from "./cloudinary.js";
 import { deleteFromImageKit } from "./imageKit.js";
 

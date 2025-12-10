@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import {DB_NAME} from "../constants.js";
-import { Room } from "../models/room.model.js";
+import { Room } from "../models/products/room.model.js";
 
 const connectDB = async () => {
     try {

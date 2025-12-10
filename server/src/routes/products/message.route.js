@@ -3,8 +3,8 @@ import {
     getMessages,
     sendMessage,
     uploadFile
-} from "../controllers/message.controller.js";
-import {upload} from "../middlewares/multer.middleware.js"
+} from "../../controllers/products/message.controller.js";
+import {upload} from "../../middlewares/multer.middleware.js"
 
 const router = Router();
 

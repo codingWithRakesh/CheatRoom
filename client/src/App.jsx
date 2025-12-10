@@ -8,11 +8,14 @@ import Navbar from './components/Navbar'
 import fingerprintStore from "./store/fingerprintStore.js"
 import messageStore from "./store/messageStore.js"
 import Loading from './components/Loading.jsx';
+import RightSideBar from './components/RightSideBar.jsx';
+import { useRightSidebar } from './contexts/rightSIdebarContext.jsx';
 
 function App() {
   const { registerFingerprint, message, error, isLoading } = fingerprintStore();
   const { setSocket } = messageStore();
   const socketRef = useRef(null);
+  const { isOpen, setIsOpen } = useRightSidebar();
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -78,6 +81,7 @@ function App() {
       <Suspense>
         <Outlet />
       </Suspense>
+      <RightSideBar />
     </div>
   );
 }

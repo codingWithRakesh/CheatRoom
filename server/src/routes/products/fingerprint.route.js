@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerFingerprint } from "../controllers/fingerprint.controller.js";
+import { registerFingerprint } from "../../controllers/products/fingerprint.controller.js";
 
 const router = Router();
 

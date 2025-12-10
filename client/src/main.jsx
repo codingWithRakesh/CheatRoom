@@ -7,6 +7,7 @@ import Home from './pages/Home.jsx'
 import Message from './pages/Message.jsx'
 import Error from './pages/Error.jsx'
 import Loading from './components/Loading.jsx'
+import RightSidebarContextProvider from './contexts/rightSIdebarContext.jsx'
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <RightSidebarContextProvider>
+      <RouterProvider router={router} />
+    </RightSidebarContextProvider>
   </StrictMode>
 )

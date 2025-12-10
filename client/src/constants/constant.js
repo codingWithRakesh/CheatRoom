@@ -15,4 +15,10 @@ async function generateStableSystemFingerprint() {
   return hashHex;
 }
 
-export { generateStableSystemFingerprint };
+function extractErrorMessage(htmlString) {
+  const match = htmlString.match(/Error:\s*(.*?)<br>/);
+  return match ? match[1].trim() : null;
+}
+
+
+export { generateStableSystemFingerprint, extractErrorMessage };

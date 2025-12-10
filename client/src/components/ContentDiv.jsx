@@ -23,12 +23,12 @@ const ContentDiv = ({ alignment }) => {
         }
     }, [currentRoomCode]);
 
-    useEffect(() => {
-        if (error) {
-            alert(error);
-            clearError();
-        }
-    }, [error]);
+    // useEffect(() => {
+    //     if (error) {
+    //         alert(error);
+    //         clearError();
+    //     }
+    // }, [error]);
 
     const handleGenerateNewRoom = async () => {
         try {

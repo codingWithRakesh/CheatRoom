@@ -7,7 +7,7 @@ import {
     getPublicKeyByRoomCode,
     getPrivateKeyByRoomCode,
     deletePrivateKeyById
-} from "../controllers/privateKeys.controller.js"
+} from "../../controllers/products/privateKeys.controller.js"
 
 const router = Router();
 

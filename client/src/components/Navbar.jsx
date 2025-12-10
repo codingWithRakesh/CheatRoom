@@ -7,6 +7,7 @@ import roomStore from "../store/roomStore.js"
 import fingerprintStore from '../store/fingerprintStore.js';
 import LiveClock from './LiveClock.jsx';
 import { FiHelpCircle, FiMessageSquare, FiSettings } from 'react-icons/fi';
+import { useRightSidebar } from '../contexts/rightSIdebarContext.jsx';
 
 const Navbar = () => {
   const location = useLocation();
@@ -17,6 +18,7 @@ const Navbar = () => {
   const { code } = useParams();
   const { exitRoom } = roomStore();
   const { visitorId } = fingerprintStore();
+  const { isOpen, setIsOpen } = useRightSidebar();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -44,8 +46,8 @@ const Navbar = () => {
           <button
             onClick={handleCopy}
             className={`p-2 rounded transition-all duration-200 flex items-center justify-center ${isCopied
-                ? 'bg-green-500/20 text-green-400'
-                : 'bg-zinc-600/50 hover:bg-zinc-500/70 text-gray-300 hover:text-white'
+              ? 'bg-green-500/20 text-green-400'
+              : 'bg-zinc-600/50 hover:bg-zinc-500/70 text-gray-300 hover:text-white'
               }`}
             aria-label={isCopied ? "Copied!" : "Copy code"}
           >
@@ -62,11 +64,10 @@ const Navbar = () => {
         <div className={`${code ? 'hidden lg:flex' : 'hidden md:flex'} items-center justify-center text-3xl`}>
           <LiveClock />
           <div className="flex items-center p-2 justify-center gap-4 text-white">
-            <FiHelpCircle className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
             <FiMessageSquare className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
-            <FiSettings className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
           </div>
         </div>
+        <FiSettings onClick={() => setIsOpen(v => !v)} className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
         {code && (
           <button
             onClick={handleExit}
@@ -76,7 +77,7 @@ const Navbar = () => {
             <span className="hidden xs:inline">Exit</span>
           </button>
         )}
-        
+
       </div>
     </div>
   )

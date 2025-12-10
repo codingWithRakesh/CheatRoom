@@ -1,7 +1,7 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiResponse } from "../utils/apiResponse.js";
-import { ApiError } from "../utils/apiError.js";
-import { Fingerprint } from "../models/fingerprint.model.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
+import { ApiResponse } from "../../utils/apiResponse.js";
+import { ApiError } from "../../utils/apiError.js";
+import { Fingerprint } from "../../models/products/fingerprint.model.js";
 
 const registerFingerprint = asyncHandler(async (req, res) => {
   const { visitorId } = req.body;

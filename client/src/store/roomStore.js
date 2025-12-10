@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import axios from "axios";
 import CryptoUtils from "../utils/cryptoUtils";
+import { extractErrorMessage } from "../constants/constant.js" 
 
 const roomStore = create((set, get) => ({
     isLoading: false,
@@ -142,6 +143,38 @@ const roomStore = create((set, get) => ({
         } catch (error) {
             set({
                 error: error.response?.data?.message || error.message,
+                isLoading: false
+            });
+            throw error;
+        }
+    },
+
+    deleteRoom: async (code, visitorId) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axios.delete(
+                `${import.meta.env.VITE_BACKEND_URL}/room/delete`,
+                {
+                    data: { code, visitorId },
+                    headers: { "Content-Type": "application/json" },
+                    withCredentials: true 
+                }
+            );
+
+            if (response.status === 200) {
+                set({
+                    isLoading: false,
+                    message: response.data.message,
+                    currentRoomCode: null,
+                    participants: []
+                });
+                return true;
+            } else {
+                throw new Error("Failed to exit room");
+            }
+        } catch (error) {
+            set({
+                error: extractErrorMessage(error.response?.data) || error.message,
                 isLoading: false
             });
             throw error;

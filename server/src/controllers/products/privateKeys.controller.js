@@ -1,10 +1,10 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiResponse } from "../utils/apiResponse.js";
-import { ApiError } from "../utils/apiError.js";
-import { Room } from "../models/room.model.js";
-import { PrivateKey } from "../models/privateKeys.model.js"
+import { asyncHandler } from "../../utils/asyncHandler.js";
+import { ApiResponse } from "../../utils/apiResponse.js";
+import { ApiError } from "../../utils/apiError.js";
+import { Room } from "../../models/products/room.model.js";
+import { PrivateKey } from "../../models/products/privateKeys.model.js"
 import mongoose from "mongoose";
-import { CryptoUtils } from "../utils/cryptoUtils.js";
+import { CryptoUtils } from "../../utils/cryptoUtils.js";
 
 const createPrivateKey = asyncHandler(async (req, res, next) => {
     const { roomID, privateKey } = req.body;

@@ -1,15 +1,15 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiResponse } from "../utils/apiResponse.js";
-import { ApiError } from "../utils/apiError.js";
-import { Message } from "../models/message.model.js"
-import { Room } from "../models/room.model.js";
-import { io } from "../socket/socket.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
+import { ApiResponse } from "../../utils/apiResponse.js";
+import { ApiError } from "../../utils/apiError.js";
+import { Message } from "../../models/products/message.model.js"
+import { Room } from "../../models/products/room.model.js";
+import { io } from "../../socket/socket.js";
 import { GoogleGenAI } from "@google/genai";
-import { uploadOnCloudinary } from "../utils/cloudinary.js"
-import { uploadToImageKit } from "../utils/imageKit.js"
+import { uploadOnCloudinary } from "../../utils/cloudinary.js"
+import { uploadToImageKit } from "../../utils/imageKit.js"
 import sharp from "sharp";
 import zlib from "zlib";
-import { CryptoUtils } from "../utils/cryptoUtils.js";
+import { CryptoUtils } from "../../utils/cryptoUtils.js";
 
 const getMessages = asyncHandler(async (req, res) => {
     const { code } = req.params;
