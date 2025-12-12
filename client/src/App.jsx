@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import axios from 'axios';
 import { io } from "socket.io-client";
-import './App.css';
 import { Outlet } from 'react-router-dom';
 import Navbar from './components/Navbar'
 import fingerprintStore from "./store/fingerprintStore.js"
@@ -10,6 +9,9 @@ import messageStore from "./store/messageStore.js"
 import Loading from './components/Loading.jsx';
 import RightSideBar from './components/RightSideBar.jsx';
 import { useRightSidebar } from './contexts/rightSIdebarContext.jsx';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import './App.css';
 
 function App() {
   const { registerFingerprint, message, error, isLoading } = fingerprintStore();
@@ -82,6 +84,7 @@ function App() {
         <Outlet />
       </Suspense>
       <RightSideBar />
+      <ToastContainer autoClose={2000} />
     </div>
   );
 }

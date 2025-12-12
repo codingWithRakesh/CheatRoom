@@ -21,8 +21,8 @@ const SidebarChat = () => {
     };
     
     const handleExit = async () => {
-        await exitRoom(code, visitorId);
         navigate('/');
+        await exitRoom(code, visitorId);
     };
     
     return (

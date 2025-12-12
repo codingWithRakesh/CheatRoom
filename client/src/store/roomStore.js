@@ -2,6 +2,7 @@ import { create } from "zustand";
 import axios from "axios";
 import CryptoUtils from "../utils/cryptoUtils";
 import { extractErrorMessage } from "../constants/constant.js" 
+import { handleError, handleSuccess } from "../utils/toastUtils.js";
 
 const roomStore = create((set, get) => ({
     isLoading: false,
@@ -44,9 +45,10 @@ const roomStore = create((set, get) => ({
             }
         } catch (error) {
             set({
-                error: error.response?.data?.message || error.message,
+                error: extractErrorMessage(error.response?.data) || error.message,
                 isLoading: false
             });
+            handleError(get().error);
             throw error;
         }
     },
@@ -76,9 +78,10 @@ const roomStore = create((set, get) => ({
             }
         } catch (error) {
             set({
-                error: error.response?.data?.message || error.message,
+                error: extractErrorMessage(error.response?.data) || error.message,
                 isLoading: false
             });
+            handleError(get().error);
             throw error;
         }
     },
@@ -142,9 +145,10 @@ const roomStore = create((set, get) => ({
             }
         } catch (error) {
             set({
-                error: error.response?.data?.message || error.message,
+                error: extractErrorMessage(error.response?.data) || error.message,
                 isLoading: false
             });
+            handleError(get().error);
             throw error;
         }
     },
@@ -168,6 +172,7 @@ const roomStore = create((set, get) => ({
                     currentRoomCode: null,
                     participants: []
                 });
+                handleSuccess("Room deleted successfully");
                 return true;
             } else {
                 throw new Error("Failed to exit room");
@@ -177,6 +182,7 @@ const roomStore = create((set, get) => ({
                 error: extractErrorMessage(error.response?.data) || error.message,
                 isLoading: false
             });
+            handleError(get().error);
             throw error;
         }
     },

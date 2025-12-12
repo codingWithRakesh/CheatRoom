@@ -99,7 +99,7 @@ const RightSideBar = () => {
                             </button>
                         </div>
                         <p className="text-gray-400 sujoy2 text-xs lg:text-sm mt-2 text-center">
-                            Enter the room code provided by your host
+                            Enter your room code
                         </p>
                     </div>
                     {error && <div className='peragraphShow'>

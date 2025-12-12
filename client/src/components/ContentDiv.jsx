@@ -5,6 +5,7 @@ import { TbCopy, TbArrowRight } from "react-icons/tb";
 import roomStore from "../store/roomStore.js";
 import fingerprintStore from "../store/fingerprintStore.js";
 import { useNavigate } from 'react-router-dom';
+import { handleError } from "../utils/toastUtils.js"
 
 const ContentDiv = ({ alignment }) => {
     const { generateRoomCode, currentRoomCode, joinRoom, isLoading, error, clearError } = roomStore();
@@ -25,7 +26,7 @@ const ContentDiv = ({ alignment }) => {
 
     // useEffect(() => {
     //     if (error) {
-    //         alert(error);
+    //         handleError(error);
     //         clearError();
     //     }
     // }, [error]);

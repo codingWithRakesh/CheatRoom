@@ -1,3 +1,8 @@
 .manageHeight{
     height: calc(4rem - 100%);
 }
+
+/* Make react-toastify close button white */
+.Toastify__close-button > svg {
+  fill: #ffffff !important; /* white icon */
+}
