@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import axios from "axios";
 import CryptoUtils from "../utils/cryptoUtils";
-import { extractErrorMessage } from "../constants/constant.js" 
+import { getErrorMessage } from "../constants/constant.js" 
 import { handleError, handleSuccess } from "../utils/toastUtils.js";
 
 const roomStore = create((set, get) => ({
@@ -45,7 +45,7 @@ const roomStore = create((set, get) => ({
             }
         } catch (error) {
             set({
-                error: extractErrorMessage(error.response?.data) || error.message,
+                error: getErrorMessage(error) || error.message,
                 isLoading: false
             });
             handleError(get().error);
@@ -78,7 +78,7 @@ const roomStore = create((set, get) => ({
             }
         } catch (error) {
             set({
-                error: extractErrorMessage(error.response?.data) || error.message,
+                error: getErrorMessage(error) || error.message,
                 isLoading: false
             });
             handleError(get().error);
@@ -145,7 +145,7 @@ const roomStore = create((set, get) => ({
             }
         } catch (error) {
             set({
-                error: extractErrorMessage(error.response?.data) || error.message,
+                error: getErrorMessage(error) || error.message,
                 isLoading: false
             });
             handleError(get().error);
@@ -179,7 +179,7 @@ const roomStore = create((set, get) => ({
             }
         } catch (error) {
             set({
-                error: extractErrorMessage(error.response?.data) || error.message,
+                error: getErrorMessage(error) || error.message,
                 isLoading: false
             });
             handleError(get().error);

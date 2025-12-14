@@ -15,10 +15,21 @@ async function generateStableSystemFingerprint() {
   return hashHex;
 }
 
-function extractErrorMessage(htmlString) {
-  const match = htmlString.match(/Error:\s*(.*?)<br>/);
-  return match ? match[1].trim() : null;
-}
+const getErrorMessage = (error) => {
+  if (error?.response?.data?.message) {
+    return error.response.data.message;
+  }
+
+  if (typeof error?.response?.data === "string") {
+    return "Invalid request";
+  }
+
+  if (error?.message) {
+    return error.message;
+  }
+
+  return "Something went wrong";
+};
 
 
-export { generateStableSystemFingerprint, extractErrorMessage };
+export { generateStableSystemFingerprint, getErrorMessage };
