@@ -1,17 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
+import timeStore from "../store/timeStore.js";
 
 export default function LiveClock() {
+  const { fetchCurrentTime } = timeStore();
   const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
-    const timerId = setInterval(() => {
-      setCurrentDate(new Date());
+    fetchCurrentTime(setCurrentDate);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDate(prev => new Date(prev.getTime() + 1000));
     }, 1000);
 
-    return () => {
-      clearInterval(timerId);
-    };
+    return () => clearInterval(timer);
   }, []);
+
 
   const formatTime = (date) => {
     const hours = String(date.getHours()).padStart(2, '0');
@@ -20,14 +25,9 @@ export default function LiveClock() {
   };
 
   const formatDate = (date) => {
-    const dayOptions = { weekday: 'short' }; // e.g., "Sun"
-    const monthOptions = { month: 'short' }; // e.g., "Oct"
-    
-    const day = new Intl.DateTimeFormat('en-US', dayOptions).format(date);
-    const dayOfMonth = date.getDate();
-    const month = new Intl.DateTimeFormat('en-US', monthOptions).format(date);
-    
-    return `${day} ${dayOfMonth} ${month}`;
+    const day = new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(date);
+    const month = new Intl.DateTimeFormat('en-US', { month: 'short' }).format(date);
+    return `${day} ${date.getDate()} ${month}`;
   };
 
   return (
