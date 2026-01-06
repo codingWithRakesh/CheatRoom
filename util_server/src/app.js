@@ -13,10 +13,12 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 import timeRouter from "./routes/time.route.js"
+import imageUploadRoute from "./routes/imageUpload.route.js"
 
 app.use("/api/v2/time", timeRouter)
+app.use("/api/v2/image-upload", imageUploadRoute)
 
-app.get("/", (req, res) => {
+app.get("/", (_, res) => {
   res.send("working")
 })
 
