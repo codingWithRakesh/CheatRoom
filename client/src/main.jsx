@@ -8,6 +8,7 @@ import Message from './pages/Message.jsx'
 import Error from './pages/Error.jsx'
 import Loading from './components/Loading.jsx'
 import RightSidebarContextProvider from './contexts/rightSIdebarContext.jsx'
+import FeedbackContextProvider from './contexts/feedbackContent.jsx'
 
 const router = createBrowserRouter([
   {
@@ -33,8 +34,10 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RightSidebarContextProvider>
-      <RouterProvider router={router} />
-    </RightSidebarContextProvider>
+    <FeedbackContextProvider>
+      <RightSidebarContextProvider>
+        <RouterProvider router={router} />
+      </RightSidebarContextProvider>
+    </FeedbackContextProvider>
   </StrictMode>
 )

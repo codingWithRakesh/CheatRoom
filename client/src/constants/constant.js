@@ -31,5 +31,15 @@ const getErrorMessage = (error) => {
   return "Something went wrong";
 };
 
+function dataToFormData(feedbackData) {
+  const formData = new FormData();
+  formData.append("message", feedbackData.message);
+  formData.append("feedBackType", feedbackData.feedBackType);
+  if (feedbackData.attachment) {
+    formData.append("attachment", feedbackData.attachment);
+  }
+  return formData;
+}
 
-export { generateStableSystemFingerprint, getErrorMessage };
+
+export { generateStableSystemFingerprint, getErrorMessage, dataToFormData };

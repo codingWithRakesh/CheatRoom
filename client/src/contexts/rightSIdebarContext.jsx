@@ -3,7 +3,10 @@ import React, { createContext, useContext, useState } from 'react'
 export const RightSidebarContext = createContext()
 
 const RightSidebarContextProvider = ({ children }) => {
-    const [isOpen, setIsOpen] = useState(false)
+    const [isOpen, setIsOpen] = useState({
+        isOpen: false,
+        isWhat : "settings"
+    })
     return (
         <RightSidebarContext.Provider value={{ isOpen, setIsOpen }}>
             {children}

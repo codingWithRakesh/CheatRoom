@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import axios from 'axios';
 import { io } from "socket.io-client";
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar'
 import fingerprintStore from "./store/fingerprintStore.js"
 import messageStore from "./store/messageStore.js"
@@ -12,12 +12,58 @@ import { useRightSidebar } from './contexts/rightSIdebarContext.jsx';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import './App.css';
+import { useFeedback } from './contexts/feedbackContent.jsx';
+import { dataToFormData } from './constants/constant.js';
+import { handleSuccess } from './utils/toastUtils.js';
+import feedbackStore from './store/feedbackStore.js';
 
 function App() {
-  const { registerFingerprint, message, error, isLoading } = fingerprintStore();
+  const { registerFingerprint, error, isLoading } = fingerprintStore();
   const { setSocket } = messageStore();
   const socketRef = useRef(null);
   const { isOpen, setIsOpen } = useRightSidebar();
+  const { isActive, setIsActive } = useFeedback();
+  const { submitFeedback } = feedbackStore();
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    async function checkFeedbackRedirect() {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+      if (token) {
+        localStorage.setItem("accessToken", token);
+
+        window.history.replaceState({}, document.title, "/");
+
+        navigate("/");
+        const type = localStorage.getItem("feedbackType");
+        setIsOpen(v => ({ ...v, isOpen: !v.isOpen, isWhat: "feedback" }))
+
+        if (type === "report") {
+          setIsOpen(v => ({ ...v, isOpen: true, isWhat: "" }))
+          setIsActive(v => ({ ...v, isActive: true, isWhat: "report" }))
+        } else if (type === "ideas") {
+          setIsOpen(v => ({ ...v, isOpen: true, isWhat: "" }))
+          setIsActive(v => ({ ...v, isActive: true, isWhat: "ideas" }))
+        }
+
+        const feedbackData = JSON.parse(localStorage.getItem("feedbackData"));
+        if (feedbackData) {
+          localStorage.removeItem("feedbackData");
+
+          const formData = dataToFormData(feedbackData);
+          await submitFeedback(formData);
+          handleSuccess("Feedback submitted successfully!");
+        }
+        setIsOpen(v => ({ ...v, isOpen: !v.isOpen }))
+        setIsActive(v => ({ ...v, isActive: false, isWhat: "" }))
+      }
+    }
+
+    checkFeedbackRedirect();
+
+  }, [navigate])
+
 
   useEffect(() => {
     const initializeApp = async () => {

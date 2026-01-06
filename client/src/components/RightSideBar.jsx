@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import { useState } from 'react';
-import { FaShieldVirus } from 'react-icons/fa6';
+import { FaLightbulb, FaShieldVirus } from 'react-icons/fa6';
 import { RxCross1 } from "react-icons/rx";
 import { TbArrowRight } from 'react-icons/tb';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,16 @@ import { useRightSidebar } from '../contexts/rightSIdebarContext';
 import roomStore from '../store/roomStore';
 import fingerprintStore from '../store/fingerprintStore';
 import { useEffect } from 'react';
+import feedbackImg from "../assets/images/feedback.png"
+import { AiFillBug } from "react-icons/ai";
+import { useFeedback } from '../contexts/feedbackContent';
+import { GoArrowLeft } from "react-icons/go";
+import { FiArrowLeft, FiUploadCloud } from 'react-icons/fi';
+import { HiArrowLeft } from "react-icons/hi2";
+import { AiOutlineUpload, AiOutlineClose } from "react-icons/ai";
+import FeedbackDIv from './FeedbackDIv';
+import LoginByGoogle from './LoginByGoogle';
+
 
 const RightSideBar = () => {
     const { isOpen, setIsOpen } = useRightSidebar();
@@ -16,6 +26,8 @@ const RightSideBar = () => {
 
     const { deleteRoom, isLoading, error, clearError, clearMessage, message } = roomStore();
     const { visitorId } = fingerprintStore();
+
+    const { isActive, setIsActive } = useFeedback();
 
     const [isCopied, setIsCopied] = useState(false);
     const [joinCodeInput, setJoinCodeInput] = useState('');
@@ -50,12 +62,22 @@ const RightSideBar = () => {
 
 
     return (
-        <div className={`w-[25rem] h-screen ${isOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 flex items-center justify-center fixed top-0 right-0 bg-zinc-900 border border-gray-700 z-[9999] rounded-l-lg shadow-lg`}>
+        <div className={`w-[25rem] h-screen ${isOpen.isOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 flex items-center justify-center fixed top-0 right-0 bg-zinc-900 border border-gray-700 z-[9999] rounded-l-lg shadow-lg`}>
             <div className='w-full h-full'>
                 <nav className='px-4 py-2.5 border-gray-700 border-b flex items-center justify-between'>
-                    <h1 className='text-white font-bold  sujoy1 text-3xl '>Delete Room</h1>
+                    {isActive.isActive && <button onClick={() => {
+                        setIsOpen(v => ({ ...v, isOpen: true, isWhat: "feedback" }))
+                        setIsActive(v => ({ ...v, isActive: false, isWhat: "" }))
+                        // setJoinCodeInput('');
+                        // clearError();
+                        // clearMessage();
+                    }} className='text-white cursor-pointer p-3.5 rounded-full hover:bg-gray-800 transition-all duration-300 ease-in-out'>
+                        <HiArrowLeft />
+                    </button>}
+                    <h1 className='text-white font-bold  sujoy1 text-3xl '>{isOpen.isWhat === "settings" ? "Delete Room" : "Send feedback"}</h1>
                     <button onClick={() => {
-                        setIsOpen(v => !v)
+                        setIsOpen(v => ({ ...v, isOpen: !v.isOpen }))
+                        setIsActive(v => ({ ...v, isActive: false, isWhat: "" }))
                         setJoinCodeInput('');
                         clearError();
                         clearMessage();
@@ -64,7 +86,7 @@ const RightSideBar = () => {
                     </button>
                 </nav>
 
-                <div className='bodySIdebar flex flex-col items-center justify-start px-6 gap-6'>
+                {isOpen.isWhat === "settings" && <div className='bodySIdebar flex flex-col items-center justify-start px-6 gap-6'>
                     <div className='peragraphShow'>
                         <p className="text-gray-300 sujoy2 text-center w-full lg:w-2/3 mx-auto mt-6">
                             If you create a temporary room, you can delete the room after your chat session is over.
@@ -104,15 +126,49 @@ const RightSideBar = () => {
                     </div>
                     {error && <div className='peragraphShow'>
                         <p className="text-red-300 sujoy2 text-center w-full lg:w-2/3 mx-auto mt-6">
-                            {error }
+                            {error}
                         </p>
                     </div>}
                     {message && <div className='peragraphShow'>
                         <p className="text-green-300 sujoy2 text-center w-full lg:w-2/3 mx-auto mt-6">
-                            {message }
+                            {message}
                         </p>
                     </div>}
-                </div>
+                </div>}
+
+                {isOpen.isWhat === "feedback" && <div className='bodySIdebar flex flex-col items-center justify-start px-6 gap-6'>
+                    <div className="w-54 h-54 md:w-72 md:h-72 my-8 rounded-full overflow-hidden">
+                        <img src={feedbackImg} alt="Feedback" className="h-full w-full object-contain" />
+                    </div>
+                    <button onClick={() => {
+                        setIsOpen(v => ({ ...v, isOpen: true, isWhat: "" }))
+                        setIsActive(v => ({ ...v, isActive: true, isWhat: "report" }))
+                        localStorage.setItem("feedbackType", "report");
+                    }} className='w-full h-[4rem] gap-3 cursor-pointer text-white bg-gradient-to-r flex items-center sujoy1 from-blue-950 to-purple-950 hover:from-pink-900 hover:to-blue-700 font-semibold py-2 lg:py-2 px-4 lg:px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-2xl lg:text-2xl'>
+                        <AiFillBug />
+                        <p>Report a Bug</p>
+                    </button>
+                    <button onClick={() => {
+                        setIsOpen(v => ({ ...v, isOpen: true, isWhat: "" }))
+                        setIsActive(v => ({ ...v, isActive: true, isWhat: "ideas" }))
+                        localStorage.setItem("feedbackType", "ideas");
+                    }} className='w-full h-[4rem] gap-3 cursor-pointer bg-gradient-to-r flex items-center sujoy1 from-blue-950 to-purple-950 hover:from-pink-900 hover:to-blue-700 text-white font-semibold py-2 lg:py-2 px-4 lg:px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-2xl lg:text-2xl'>
+                        <FaLightbulb />
+                        <p>Suggest a Feature</p>
+                    </button>
+                    <div className='peragraphShow'>
+                        <p className="text-gray-300 sujoy2 text-center w-full lg:w-2/3 mx-auto mt-6">
+                            If you report an issue or share a suggestion, our team will review it promptly and take necessary action at the earliest.
+                        </p>
+                    </div>
+                </div>}
+
+                {(isActive.isWhat === "ideas" && isActive.isActive) && <FeedbackDIv type="ideas" />}
+
+                {(isActive.isWhat === "report" && isActive.isActive) && <FeedbackDIv type="report" />}
+
+                {(isActive.isWhat === "login" && isActive.isActive) && <LoginByGoogle />}
+
             </div>
         </div>
     )

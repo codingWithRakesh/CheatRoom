@@ -2,8 +2,6 @@ import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 import session from "express-session";
-import passport from "passport";
-import "./utils/passport.js"; // we create this file below
 import mongoose from "mongoose";
 
 const app = express()
@@ -20,8 +18,6 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
 }));
-app.use(passport.initialize());
-app.use(passport.session());
 
 import fingerprintRouter from "./routes/products/fingerprint.route.js"
 import roomRouter from "./routes/products/room.route.js"

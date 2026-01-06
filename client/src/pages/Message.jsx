@@ -75,7 +75,7 @@ const Message = () => {
   useEffect(() => {
     if (error) {
       handleError(error);
-      alert(error);
+      // alert(error);
       clearError();
     }
   }, [error]);
@@ -148,7 +148,8 @@ const Message = () => {
 
   useEffect(() => {
     if (error) {
-      alert(error);
+      // alert(error);
+      handleError(error);
       clearError();
     }
   }, [error, clearError]);
@@ -273,7 +274,7 @@ const Message = () => {
     } catch (err) {
       console.error("Failed to upload file:", err);
       setMessages(prev => prev.filter(msg => msg.tempId !== tempId));
-      alert(err.response?.data?.message || "Failed to upload file");
+      handleError(err.response?.data?.message || "Failed to upload file");
     }
   };
 

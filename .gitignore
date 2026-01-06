@@ -1,7 +1,9 @@
 server/node_modules/
+util_server/node_modules/
 client/node_modules/
 
 server/.env
+util_server/.env
 client/.env
 
 credentials.json

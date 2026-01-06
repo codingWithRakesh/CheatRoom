@@ -64,10 +64,10 @@ const Navbar = () => {
         <div className={`${code ? 'hidden lg:flex' : 'hidden md:flex'} items-center justify-center text-3xl`}>
           <LiveClock />
           <div className="flex items-center p-2 justify-center gap-4 text-white">
-            <FiMessageSquare className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
           </div>
         </div>
-        <FiSettings onClick={() => setIsOpen(v => !v)} className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
+        <FiMessageSquare onClick={() => setIsOpen(v => ({ ...v, isOpen: !v.isOpen, isWhat: "feedback" }))} className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
+        <FiSettings onClick={() => setIsOpen(v => ({ ...v, isOpen: !v.isOpen, isWhat: "settings" }))} className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
         {code && (
           <button
             onClick={handleExit}
