@@ -1,6 +1,7 @@
 server/node_modules/
 util_server/node_modules/
 client/node_modules/
+feedback_server/.env
 
 server/.env
 util_server/.env

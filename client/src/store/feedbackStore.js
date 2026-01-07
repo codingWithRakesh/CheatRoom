@@ -28,6 +28,19 @@ const feedbackStore = create((set, get) => ({
             throw error;
         }
     },
+    runServer : async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axios.get(
+                `${import.meta.env.VITE_FEEDBACK_BACKEND_URL}/run/server`
+            );
+            set({ isLoading: false, message: "server started successfully" });
+        } catch (error) {
+            set({ isLoading: false, error: error.message });
+            throw error;
+        }
+    },
+
     clearError: () => set({ error: null }),
     clearMessage: () => set({ message: null })
 

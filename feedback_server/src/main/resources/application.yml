@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: feedback_server
+
+  mongodb:
+    uri: ${MONGODB_URL}
+    auto-index-creation: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+
+logging:
+  level:
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+
+jwt:
+  secretKey: ${JWT_SECRET}
+
+url:
+  upload:
+    serverUrl: ${SERVER_URL}
+    clientUrl: ${CLIENT_URL}
