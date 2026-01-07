@@ -1,6 +1,15 @@
+# Maven build output
 target/
-.mvn/
-*.iml
+
+# IDE / OS files
 .idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Git
 .git/
 .gitignore
+
+# Environment files (Render uses dashboard vars)
+.env
