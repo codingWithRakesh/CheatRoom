@@ -8,6 +8,7 @@ import fingerprintStore from '../store/fingerprintStore.js';
 import LiveClock from './LiveClock.jsx';
 import { FiHelpCircle, FiMessageSquare, FiSettings } from 'react-icons/fi';
 import { useRightSidebar } from '../contexts/rightSIdebarContext.jsx';
+import feedbackStore from '../store/feedbackStore.js';
 
 const Navbar = () => {
   const location = useLocation();
@@ -19,6 +20,7 @@ const Navbar = () => {
   const { exitRoom } = roomStore();
   const { visitorId } = fingerprintStore();
   const { isOpen, setIsOpen } = useRightSidebar();
+  const { submitFeedback, runServer } = feedbackStore();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -66,8 +68,14 @@ const Navbar = () => {
           <div className="flex items-center p-2 justify-center gap-4 text-white">
           </div>
         </div>
-        <FiMessageSquare onClick={() => setIsOpen(v => ({ ...v, isOpen: !v.isOpen, isWhat: "feedback" }))} className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
-        <FiSettings onClick={() => setIsOpen(v => ({ ...v, isOpen: !v.isOpen, isWhat: "settings" }))} className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
+        <FiMessageSquare onClick={async () => {
+          setIsOpen(v => ({ ...v, isOpen: !v.isOpen, isWhat: "feedback" }))
+          await runServer();
+        }} className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
+        <FiSettings onClick={async () => {
+          setIsOpen(v => ({ ...v, isOpen: !v.isOpen, isWhat: "settings" }))
+          await runServer();
+        }} className="h-6 w-6 cursor-pointer hover:text-green-900 transition-colors" />
         {code && (
           <button
             onClick={handleExit}

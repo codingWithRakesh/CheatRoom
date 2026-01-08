@@ -10,7 +10,8 @@ import { dataToFormData } from "../constants/constant.js"
 
 const FeedbackDIv = ({ type }) => {
     const { isActive, setIsActive } = useFeedback();
-    const { submitFeedback, error, isLoading, message, clearError, clearMessage } = feedbackStore();
+    const { submitFeedback, error,isLoading, message, clearError, clearMessage } = feedbackStore();
+    const [isLoadingS, setIsLoadingS] = useState(false)
     const [feedbackData, setFeedbackData] = useState({
         message: "",
         feedBackType: type === "report" ? "BUG" : "FEATURE",
@@ -30,7 +31,9 @@ const FeedbackDIv = ({ type }) => {
         const formData = dataToFormData(feedbackData);
 
         try {
+            setIsLoadingS(true);
             await submitFeedback(formData);
+            setIsLoadingS(false);
             handleSuccess("Feedback submitted successfully!");
             localStorage.removeItem("feedbackData");
             setFeedbackData({
@@ -86,8 +89,8 @@ const FeedbackDIv = ({ type }) => {
                 </div>
 
 
-                <button disabled={isLoading} onClick={submitFeedbackFun} className='bg-gradient-to-r mt-4 w-full items-center text-center sujoy1 cursor-pointer from-blue-950 to-purple-950 hover:from-pink-900 hover:to-blue-700 text-white font-semibold py-2 lg:py-2 px-4 lg:px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-2xl lg:text-2xl'>
-                    {isLoading ? "Submitting..." : "Submit"}
+                <button disabled={isLoadingS} onClick={submitFeedbackFun} className='bg-gradient-to-r mt-4 w-full items-center text-center sujoy1 cursor-pointer from-blue-950 to-purple-950 hover:from-pink-900 hover:to-blue-700 text-white font-semibold py-2 lg:py-2 px-4 lg:px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-2xl lg:text-2xl'>
+                    {isLoading ? "Wait" : isLoadingS ? "Submitting..." : "Submit Feedback"}
                 </button>
 
                 {error && <div className='peragraphShow'>

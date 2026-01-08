@@ -23,7 +23,7 @@ function App() {
   const socketRef = useRef(null);
   const { isOpen, setIsOpen } = useRightSidebar();
   const { isActive, setIsActive } = useFeedback();
-  const { submitFeedback, runServer } = feedbackStore();
+  const { submitFeedback } = feedbackStore();
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -77,8 +77,6 @@ function App() {
       }
 
       await registerFingerprint(visitorId);
-
-      await runServer();
 
       socketRef.current = io(`${import.meta.env.VITE_CORS}`, {
         extraHeaders: {

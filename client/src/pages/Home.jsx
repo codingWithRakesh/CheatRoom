@@ -33,7 +33,7 @@ const Home = () => {
 
       <footer className="w-full p-0 flex text-center items-center justify-center">
         <p className="sujoy2 text-gray-400">
-          © 2025 <span className="text-orange-400 font-semibold">CheatRoom</span> — 
+          © 2026 <span className="text-orange-400 font-semibold">CheatRoom</span> — 
           Private, Encrypted, and Anonymous Chat.
         </p>
       </footer>
