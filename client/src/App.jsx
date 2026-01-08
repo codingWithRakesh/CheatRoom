@@ -16,6 +16,8 @@ import { useFeedback } from './contexts/feedbackContent.jsx';
 import { dataToFormData } from './constants/constant.js';
 import { handleSuccess } from './utils/toastUtils.js';
 import feedbackStore from './store/feedbackStore.js';
+import { useTime } from './contexts/timeContext.jsx';
+import timeStore from './store/timeStore.js';
 
 function App() {
   const { registerFingerprint, error, isLoading } = fingerprintStore();
@@ -24,6 +26,8 @@ function App() {
   const { isOpen, setIsOpen } = useRightSidebar();
   const { isActive, setIsActive } = useFeedback();
   const { submitFeedback } = feedbackStore();
+  const {currentDate, setCurrentDate} = useTime();
+  const { fetchCurrentTime } = timeStore();
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -108,6 +112,21 @@ function App() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchCurrentTime(setCurrentDate);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [])
+
 
 
   if (isLoading) {

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, use } from 'react';
 import timeStore from "../store/timeStore.js";
+import { useTime } from '../contexts/timeContext.jsx';
 
 export default function LiveClock() {
   const { fetchCurrentTime } = timeStore();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const {currentDate, setCurrentDate} = useTime();
 
   useEffect(() => {
     fetchCurrentTime(setCurrentDate);

@@ -19,7 +19,6 @@ const timeStore = create((set, get) => ({
                 message: response.data.message 
             });
             setCurrentDate(new Date(response.data.data.currentTime || new Date().toISOString()));
-            console.log("Fetched current time:", response.data.data.currentTime);
             return response.data.data.currentTime || new Date().toISOString();
         } catch (error) {
             set({ error: error.message, isLoading: false });

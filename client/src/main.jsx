@@ -9,6 +9,7 @@ import Error from './pages/Error.jsx'
 import Loading from './components/Loading.jsx'
 import RightSidebarContextProvider from './contexts/rightSIdebarContext.jsx'
 import FeedbackContextProvider from './contexts/feedbackContent.jsx'
+import TimeContextProvider from './contexts/timeContext.jsx'
 
 const router = createBrowserRouter([
   {
@@ -34,10 +35,12 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <FeedbackContextProvider>
-      <RightSidebarContextProvider>
-        <RouterProvider router={router} />
-      </RightSidebarContextProvider>
-    </FeedbackContextProvider>
+    <TimeContextProvider>
+      <FeedbackContextProvider>
+        <RightSidebarContextProvider>
+          <RouterProvider router={router} />
+        </RightSidebarContextProvider>
+      </FeedbackContextProvider>
+    </TimeContextProvider>
   </StrictMode>
 )
