@@ -27,12 +27,15 @@ public class WebSecurityConfig {
     @Value("${url.upload.clientUrl}")
     private String clientUrl;
 
+    @Value("${url.upload.clientUrl2}")
+    private String clientUrl2;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .cors(cors -> cors.configurationSource(request -> {
                     var config = new CorsConfiguration();
-                    config.setAllowedOrigins(List.of(clientUrl));
+                    config.setAllowedOrigins(List.of(clientUrl,clientUrl2));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
                     config.setAllowedHeaders(List.of("*"));
                     return config;

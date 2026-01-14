@@ -5,6 +5,7 @@ import { useTime } from '../contexts/timeContext.jsx';
 export default function LiveClock() {
   const { fetchCurrentTime } = timeStore();
   const {currentDate, setCurrentDate} = useTime();
+  const [is12Hour, setIs12Hour] = useState(false);
 
   useEffect(() => {
     fetchCurrentTime(setCurrentDate);
@@ -25,6 +26,15 @@ export default function LiveClock() {
     return `${hours}:${minutes}`;
   };
 
+  const formatTime12Hour = (date) => {
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    return `${hours}:${minutes} ${ampm}`;
+  }
+
   const formatDate = (date) => {
     const day = new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(date);
     const month = new Intl.DateTimeFormat('en-US', { month: 'short' }).format(date);
@@ -34,7 +44,7 @@ export default function LiveClock() {
   return (
     <div className="flex items-center justify-between font-sans p-2">
       <div className="text-white text-3xl sujoy1 font-medium">
-        <span>{formatTime(currentDate)}</span>
+        <span className='cursor-pointer' onClick={()=>setIs12Hour(!is12Hour)}>{is12Hour ? formatTime12Hour(currentDate) : formatTime(currentDate)}</span>
         <span className="mx-2">•</span>
         <span>{formatDate(currentDate)}</span>
       </div>

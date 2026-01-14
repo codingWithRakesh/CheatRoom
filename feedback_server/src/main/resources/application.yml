@@ -25,3 +25,4 @@ url:
   upload:
     serverUrl: ${SERVER_URL}
     clientUrl: ${CLIENT_URL}
+    clientUrl2: ${CLIENT_URL2}
