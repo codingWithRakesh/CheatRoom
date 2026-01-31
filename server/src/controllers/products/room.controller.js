@@ -212,6 +212,10 @@ const hashCodeToCode = asyncHandler(async (req, res) => {
         throw new ApiError(403, "Invalid secret key");
     }
 
+    if(codeHash.length != 64){
+        throw new ApiError(403, "Invalid HashCode");
+    }
+
     let guessedCode = null;
     let attempts = 0;
 
