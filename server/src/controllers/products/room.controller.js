@@ -9,6 +9,7 @@ import mongoose from "mongoose";
 import { Message } from "../../models/products/message.model.js";
 import { deleteFromImageKit } from "../../utils/imageKit.js";
 import { deleteFromCloudinary, getPublicId } from "../../utils/cloudinary.js";
+import userData from "../../cache/data.js"
 
 const generateRoomCode = asyncHandler(async (req, res) => {
     const { publicKey, privateKey, visitorId } = req.body;
@@ -68,6 +69,9 @@ const joinRoom = asyncHandler(async (req, res) => {
         throw new ApiError(400, "visitorId is required");
     }
 
+    userData.set("code", code);
+    userData.set("visitorId", visitorId);
+
     const codeHash = CryptoUtils.hashRoomCode(code);
 
     const room = await Room.findOne({ codeHash });
@@ -94,6 +98,9 @@ const exitRoom = asyncHandler(async (req, res) => {
     if (!visitorId) {
         throw new ApiError(400, "visitorId is required");
     }
+
+    userData.delete("code");
+    userData.delete("visitorId");
 
     const codeHash = CryptoUtils.hashRoomCode(code);
 
@@ -127,10 +134,6 @@ const deteteRoom = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Room not found");
     }
 
-    if(room.participants.length > 2) {
-        throw new ApiError(403, "Cannot delete room with active participants");
-    }
-
     const fingerprint = await Fingerprint.findOne({ visitorId });
     if (!fingerprint) {
         throw new ApiError(404, "Fingerprint not found");
@@ -139,6 +142,10 @@ const deteteRoom = asyncHandler(async (req, res) => {
     const isAdmin = room.isAdminRoom.toString() === fingerprint._id.toString();
     if (!isAdmin) {
         throw new ApiError(403, "You are not the admin of this room");
+    }
+
+    if (room.participants.length > 2) {
+        throw new ApiError(403, "Cannot delete room with active participants");
     }
 
     const messages = await Message.find({ roomID: room._id });
@@ -158,24 +165,78 @@ const deteteRoom = asyncHandler(async (req, res) => {
     const isDeletedKey = await PrivateKey.deleteOne({ roomID: room._id });
     const isDeletedRoom = await Room.deleteOne({ _id: room._id });
 
-    if(!isDeletedRoom.deletedCount) {
+    if (!isDeletedRoom.deletedCount) {
         console.log(500, "Failed to delete room");
     }
-    if(!isDeletedKey.deletedCount) {
+    if (!isDeletedKey.deletedCount) {
         console.log(500, "Failed to delete private key");
     }
-    if(!isDeletedMessages.deletedCount) {
+    if (!isDeletedMessages.deletedCount) {
         console.log(500, "Failed to delete messages");
     }
 
     return res.status(200).json(
         new ApiResponse(200, { isAdmin }, "Room deleted successfully")
     );
-})
+});
+
+export const leaveRoom = async (code, visitorId) => {
+    try {
+        const codeHash = CryptoUtils.hashRoomCode(code);
+
+        const room = await Room.findOneAndUpdate(
+            { codeHash },
+            { $pull: { participants: visitorId } },
+            { new: true }
+        );
+
+        if (!room) {
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error leaving room:", error);
+        return false;
+    }
+};
+
+const hashCodeToCode = asyncHandler(async (req, res) => {
+    const { codeHash, secretKey } = req.body;
+
+    if (!codeHash || !secretKey) {
+        throw new ApiError(400, "codeHash and secretKey are required");
+    }
+
+    if(secretKey !== process.env.SESSION_SECRET) {
+        throw new ApiError(403, "Invalid secret key");
+    }
+
+    let guessedCode = null;
+    let attempts = 0;
+
+    while (true) {
+        attempts++;
+
+        const guess = Math.floor(100000 + Math.random() * 900000).toString();
+        const guessHash = CryptoUtils.hashRoomCode(guess);
+
+        if (guessHash === codeHash) {
+            guessedCode = guess;
+            break;
+        }
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, { guessedCode, attempts }, "Code guessed successfully")
+    );
+});
+
 
 export {
     generateRoomCode,
     joinRoom,
     exitRoom,
-    deteteRoom
+    deteteRoom,
+    hashCodeToCode
 }
