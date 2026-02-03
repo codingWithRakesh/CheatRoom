@@ -186,7 +186,7 @@ const MessageShow = ({
                 return (
                     <div className="flex items-start my-2.5 bg-gray-50 dark:bg-zinc-800 rounded-xl p-2">
                         <div className="me-2">
-                            <span className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white pb-2">
+                            <span className="flex items-center gap-2 text-sm font-medium text-white pb-2">
                                 <span className='text-[2rem]'>
                                     {getFileIcon(msg.fileType)}
                                 </span> {msg.fileName}
@@ -198,12 +198,12 @@ const MessageShow = ({
                         <div className="inline-flex self-center items-center">
                             <button
                                 onClick={() => handleDownload(msg.content, msg.fileName)}
-                                className="inline-flex cursor-pointer self-center items-center p-2 text-sm font-medium text-center text-gray-900 bg-gray-50 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50 dark:bg-gray-600 dark:hover:bg-gray-500 dark:focus:ring-gray-600"
+                                className="inline-flex cursor-pointer self-center items-center p-2 text-sm font-medium text-center text-white bg-gray-50 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-50 dark:bg-gray-600 dark:hover:bg-gray-500 dark:focus:ring-gray-600"
                                 type="button"
                                 title="Download file"
                             >
                                 <svg
-                                    className="w-4 h-4 text-gray-900 dark:text-white"
+                                    className="w-4 h-4 text-white"
                                     aria-hidden="true"
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="currentColor"
@@ -324,7 +324,7 @@ const MessageShow = ({
                                         ) : (
                                             <div className="p-4">
                                                 <div
-                                                    className={`text-sm font-semibold ${msg.isOwn ? 'text-white' : msg.isAI ? 'text-blue-100' : 'text-gray-900 dark:text-white'
+                                                    className={`text-sm font-semibold ${msg.isOwn ? 'text-white' : msg.isAI ? 'text-blue-100' : 'text-white'
                                                         } whitespace-pre-wrap break-words`}
                                                 >
                                                     {msg.decryptionError ? (
