@@ -236,11 +236,43 @@ const hashCodeToCode = asyncHandler(async (req, res) => {
     );
 });
 
+const changeAdminRoom = asyncHandler(async (req, res) => {
+    const { code, newVisitorId, secretKey } = req.body;
+
+    if(secretKey !== process.env.SESSION_SECRET) {
+        throw new ApiError(403, "Invalid secret key");
+    }
+
+    if (!code || !/^[0-9]{6}$/.test(code)) {
+        throw new ApiError(400, "Code must be a 6-digit number");
+    }
+
+    if (!newVisitorId) {
+        throw new ApiError(400, "newVisitorId is required");
+    }
+
+    const codeHash = CryptoUtils.hashRoomCode(code);
+    const room = await Room.findOne({ codeHash });
+    if (!room) {
+        throw new ApiError(404, "Room not found");
+    }
+    const newFingerprint = await Fingerprint.findOne({ visitorId: newVisitorId });
+    if (!newFingerprint) {
+        throw new ApiError(404, "Fingerprint not found");
+    }
+    room.isAdminRoom = newFingerprint._id;
+    await room.save();
+    return res.status(200).json(
+        new ApiResponse(200, null, "Admin changed successfully")
+    );
+});
+
 
 export {
     generateRoomCode,
     joinRoom,
     exitRoom,
     deteteRoom,
-    hashCodeToCode
+    hashCodeToCode,
+    changeAdminRoom
 }
