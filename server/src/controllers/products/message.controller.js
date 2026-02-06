@@ -379,6 +379,11 @@ const sendMessage = asyncHandler(async (req, res) => {
 
     if (isAI) {
         try {
+            room.participants.forEach(participant => {
+                const socketuserName = `${participant}-${roomCode}`;
+                io.to(socketuserName).emit("show_typing", { visitorId: "ai", isAi: true });
+            });
+
             aiResponse = await geminiValue(content);
             const aiMessage = await Message.create({
                 content: aiResponse,
@@ -393,6 +398,11 @@ const sendMessage = asyncHandler(async (req, res) => {
                 parentmessageContent: messagedata[0].content,
                 isReply: true
             };
+
+            room.participants.forEach(participant => {
+                const socketuserName = `${participant}-${roomCode}`;
+                io.to(socketuserName).emit("hide_typing", { visitorId: "ai", isAi: true });
+            });
 
             room.participants.forEach(participant => {
                 const socketuserName = `${participant}-${roomCode}`;

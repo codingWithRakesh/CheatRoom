@@ -2,6 +2,9 @@ import React, { useRef, useEffect } from 'react';
 import { IoClose, IoSendSharp, IoAttach } from 'react-icons/io5';
 import { RiGeminiFill } from 'react-icons/ri';
 import Emoji from './Emoji';
+import messageStore from '../store/messageStore';
+import roomStore from '../store/roomStore';
+import fingerprintStore from '../store/fingerprintStore';
 
 const MessageInput = ({
     isAIEnabled,
@@ -17,6 +20,10 @@ const MessageInput = ({
 }) => {
     const fileInputRef = useRef(null);
     const textareaRef = useRef(null);
+
+    const { socket } = messageStore();
+    const { currentRoomCode } = roomStore();
+    const { visitorId } = fingerprintStore();
 
     useEffect(() => {
         if (textareaRef.current) {
@@ -125,7 +132,14 @@ const MessageInput = ({
                             ref={textareaRef}
                             placeholder={isAIEnabled ? "Ask AI anything..." : "Type a message..."}
                             value={messageInput}
-                            onChange={(e) => setMessageInput(e.target.value)}
+                            onChange={(e) => {
+                                setMessageInput(e.target.value)
+                                socket.emit("typing", { room: currentRoomCode, visitorId });
+
+                                setTimeout(() => {
+                                    socket.emit("stop_typing", { room: currentRoomCode, visitorId });
+                                }, 1000);
+                            }}
                             onKeyPress={handleKeyPress}
                             className='w-full bg-transparent outline-none text-white text-base resize-none px-2 py-2 max-h-[40rem] overflow-y-auto'
                             autoFocus

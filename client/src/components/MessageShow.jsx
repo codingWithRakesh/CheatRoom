@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { LuFileJson, LuReplyAll } from 'react-icons/lu';
 import { MdDone } from 'react-icons/md';
 import { TbCopy } from 'react-icons/tb';
@@ -14,6 +14,8 @@ import view1 from "../assets/images/view1.jpg";
 import { IoDocumentTextOutline, IoLogoJavascript } from 'react-icons/io5';
 import { BsFiletypeCsv } from 'react-icons/bs';
 import { CiFileOn } from "react-icons/ci";
+import LoadingDots from './LoadingDots';
+import messageStore from '../store/messageStore';
 
 const MessageShow = ({
     messages,
@@ -28,6 +30,33 @@ const MessageShow = ({
     truncateText,
     isMessageEncrypted
 }) => {
+
+    const [typingUser, setTypingUser] = useState({
+        visitorId: "",
+        isAi: false
+    })
+    const { socket } = messageStore();
+
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on("show_typing", (data) => {
+            setTypingUser(data);
+        });
+
+        socket.on("hide_typing", () => {
+            setTypingUser({
+                visitorId: "",
+                isAi: false
+            });
+        });
+
+        return () => {
+            socket.off("show_typing");
+            socket.off("hide_typing");
+        };
+    }, [socket]);
+
 
     const handleDownload = async (url, fileName = "download") => {
         try {
@@ -416,6 +445,39 @@ const MessageShow = ({
                     );
                 })
             )}
+            {typingUser.visitorId && <div className={`flex items-start gap-2.5`}>
+                <ProfileColor userId={typingUser.visitorId} />
+                <div
+                    className={`flex flex-col gap-1 w-full max-w-3xl`}
+                >
+                    <div className={`flex gap-1 items-center rtl:space-x-reverse`}>
+                        <span className="text-xl font-semibold sujoy1 text-white">
+                            {typingUser.isAi ? (
+                                <span className="flex items-center gap-1 text-blue-400">
+                                    <FaRobot className="text-blue-400" />
+                                    AI Assistant
+                                </span>
+                            ) : `Anonymous`}
+                        </span>
+                    </div>
+                    <div
+                        className={`flex flex-col w-20 leading-1.5 ${typingUser.isAi
+                            ? 'bg-blue-900/30 rounded-e-xl rounded-es-xl'
+                            : 'bg-zinc-900 rounded-e-xl rounded-es-xl'
+                            }`}
+                    >
+
+                        <div className="p-4">
+                            <div
+                                className={`text-sm font-semibold text-white whitespace-pre-wrap break-words`}
+                            >
+                                <LoadingDots />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>}
             <div ref={messagesEndRef} />
         </div>
     )
