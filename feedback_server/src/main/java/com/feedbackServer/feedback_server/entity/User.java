@@ -3,7 +3,6 @@ package com.feedbackServer.feedback_server.entity;
 import com.feedbackServer.feedback_server.entity.type.AuthProviderType;
 import lombok.Builder;
 import lombok.Data;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
