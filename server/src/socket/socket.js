@@ -30,37 +30,69 @@ io.on("connection", (socket) => {
         socket.to(room).emit("receive-message", { message });
     });
 
-    socket.on("join-room", (visitorId) => {
-        socket.join(visitorId);
-        console.log(`Client ${socket.id} joined room: ${visitorId}`);
+    socket.on("join-room", ({ userId, roomCode }) => {
+        socket.join(userId);
+        socket.join(roomCode);
+
+        socket.data.userId = userId;
+        socket.data.roomCode = roomCode;
+
+        console.log(`Client ${userId} joined room: ${roomCode}`);
     });
 
     socket.on("typing", async ({ room, visitorId }) => {
-        return;
-        const codeHash = CryptoUtils.hashRoomCode(room);
-        const roomD = await Room.findOne({ codeHash });
+        // const codeHash = CryptoUtils.hashRoomCode(room);
+        // const roomD = await Room.findOne({ codeHash });
 
-        if (!roomD) return;
+        // if (!roomD) return;
 
-        roomD.participants.forEach(participant => {
-            if (participant !== visitorId) {
-                const socketuserName = `${participant}-${room}`;
-                io.to(socketuserName).emit("show_typing", { visitorId, isAi: false });
-            }
+        // roomD.participants.forEach(participant => {
+        //     if (participant !== visitorId) {
+        //         const socketuserName = `${participant}-${room}`;
+        //         io.to(socketuserName).emit("show_typing", { visitorId, isAi: false });
+        //     }
+        // });
+
+        socket.to(room).emit("show_typing", {
+            visitorId,
+            isAi: false
         });
     });
 
     socket.on("stop_typing", async ({ room, visitorId }) => {
-        return;
-        const codeHash = CryptoUtils.hashRoomCode(room);
-        const roomD = await Room.findOne({ codeHash });
+        // const codeHash = CryptoUtils.hashRoomCode(room);
+        // const roomD = await Room.findOne({ codeHash });
 
-        roomD.participants.forEach(participant => {
-            if (participant !== visitorId) {
-                const socketuserName = `${participant}-${room}`;
-                io.to(socketuserName).emit("hide_typing", { visitorId, isAi: false });
-            }
+        // roomD.participants.forEach(participant => {
+        //     if (participant !== visitorId) {
+        //         const socketuserName = `${participant}-${room}`;
+        //         io.to(socketuserName).emit("hide_typing", { visitorId, isAi: false });
+        //     }
+        // });
+
+        socket.to(room).emit("hide_typing", {
+            visitorId,
+            isAi: false
         });
+    });
+
+    socket.on("exit-room", async ({ roomCode, userId }) => {
+        if (!roomCode || !userId) {
+            console.log("Client attempted to exit room with missing data:", socket.id);
+            return;
+        }
+        try {
+            socket.leave(userId);
+            socket.leave(roomCode);
+
+            socket.data.userId = null;
+            socket.data.roomCode = null;
+
+            await leaveRoom(roomCode, userId);
+        } catch (error) {
+            console.error("Error leaving room on exit:", error);
+        }
+        console.log(`Client ${userId} left room: ${roomCode}`);
     });
 
     socket.on("connect_error", (err) => {
@@ -68,20 +100,23 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", async () => {
-        const code = userData.get("code");
-        const visitorId = userData.get("visitorId");
+        const { roomCode, userId } = socket.data;
 
-        if (code && visitorId) {
-            console.log({ code, visitorId });
-            try {
-                const success = await leaveRoom(code, visitorId);
-                if (success) {
-                    userData.delete("code");
-                    userData.delete("visitorId");
-                }
-            } catch (error) {
-                console.error("Error leaving room on disconnect:", error);
-            }
+        if (!roomCode || !userId) {
+            console.log("Client disconnected:", socket.id);
+            return;
+        }
+
+        try {
+            socket.leave(userId);
+            socket.leave(roomCode);
+
+            socket.data.userId = null;
+            socket.data.roomCode = null;
+
+            await leaveRoom(roomCode, userId);
+        } catch (error) {
+            console.error("Error leaving room on disconnect:", error);
         }
 
         console.log("Client disconnected:", socket.id);

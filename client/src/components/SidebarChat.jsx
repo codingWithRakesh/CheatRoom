@@ -6,6 +6,7 @@ import profile from "../assets/images/profile.jpeg"
 import { useParams, useNavigate } from 'react-router-dom';
 import roomStore from "../store/roomStore.js"
 import fingerprintStore from '../store/fingerprintStore.js';
+import messageStore from '../store/messageStore.js';
 
 const SidebarChat = () => {
     const [isCopied, setIsCopied] = useState(false);
@@ -13,6 +14,7 @@ const SidebarChat = () => {
     const navigate = useNavigate();
     const {exitRoom} = roomStore();
     const { visitorId } = fingerprintStore();
+    const { socket } = messageStore();
 
     const handleCopy = () => {
         navigator.clipboard.writeText(code);
@@ -21,6 +23,7 @@ const SidebarChat = () => {
     };
     
     const handleExit = async () => {
+        await socket.emit("exit-room", { roomCode: code, userId: visitorId });
         navigate('/');
         await exitRoom(code, visitorId);
     };

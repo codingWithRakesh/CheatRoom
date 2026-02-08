@@ -264,12 +264,14 @@ const uploadFile = asyncHandler(async (req, res) => {
         { $project: { parentMessage: 0 } }
     ]);
 
-    room.participants.forEach(participant => {
-        if (participant !== senderId) {
-            const socketuserName = `${participant}-${roomCode}`; // still using real code
-            io.to(socketuserName).emit("message", messagedata[0]);
-        }
-    });
+    // room.participants.forEach(participant => {
+    //     if (participant !== senderId) {
+    //         const socketuserName = `${participant}-${roomCode}`; // still using real code
+    //         io.to(socketuserName).emit("message", messagedata[0]);
+    //     }
+    // });
+
+    io.to(roomCode).emit("message", messagedata[0]);
 
     res.status(200).json(new ApiResponse(200, messagedata[0], "Upload successful"));
 });
@@ -372,20 +374,27 @@ const sendMessage = asyncHandler(async (req, res) => {
         },
     ]);
 
-    room.participants.forEach(participant => {
-        if (participant !== senderId) {
-            const socketuserName = `${participant}-${roomCode}`;
-            io.to(socketuserName).emit("message", messagedata[0]);
-        }
-    });
+    // room.participants.forEach(participant => {
+    //     if (participant !== senderId) {
+    //         const socketuserName = `${participant}-${roomCode}`;
+    //         io.to(socketuserName).emit("message", messagedata[0]);
+    //     }
+    // });
+
+    io.to(roomCode).emit("message", messagedata[0]);
 
     let aiResponse;
 
     if (isAI) {
         try {
-            room.participants.forEach(participant => {
-                const socketuserName = `${participant}-${roomCode}`;
-                io.to(socketuserName).emit("show_typing", { visitorId: "ai", isAi: true });
+            // room.participants.forEach(participant => {
+            //     const socketuserName = `${participant}-${roomCode}`;
+            //     io.to(socketuserName).emit("show_typing", { visitorId: "ai", isAi: true });
+            // });
+
+            io.to(roomCode).emit("show_typing", {
+                visitorId: "ai",
+                isAi: true
             });
 
             aiResponse = await geminiValue(content);
@@ -403,15 +412,21 @@ const sendMessage = asyncHandler(async (req, res) => {
                 isReply: true
             };
 
-            room.participants.forEach(participant => {
-                const socketuserName = `${participant}-${roomCode}`;
-                io.to(socketuserName).emit("hide_typing", { visitorId: "ai", isAi: true });
+            // room.participants.forEach(participant => {
+            //     const socketuserName = `${participant}-${roomCode}`;
+            //     io.to(socketuserName).emit("hide_typing", { visitorId: "ai", isAi: true });
+            // });
+
+            io.to(roomCode).emit("hide_typing", {
+                visitorId: "ai",
+                isAi: true
             });
 
-            room.participants.forEach(participant => {
-                const socketuserName = `${participant}-${roomCode}`;
-                io.to(socketuserName).emit("message", aiMessageData);
-            });
+            // room.participants.forEach(participant => {
+            //     const socketuserName = `${participant}-${roomCode}`;
+            //     io.to(socketuserName).emit("message", aiMessageData);
+            // });
+            io.to(roomCode).emit("message", aiMessageData);
         } catch (error) {
             throw new ApiError(500, "Failed to generate AI response");
         }

@@ -84,7 +84,10 @@ const Message = () => {
     if (!socket || !code || !visitorId || hasJoinedRoom.current) return;
 
     const socketUserName = `${visitorId}-${code}`;
-    socket.emit("join-room", socketUserName);
+    socket.emit("join-room", {
+      userId: visitorId,
+      roomCode: code,
+    });
     hasJoinedRoom.current = true;
   }, [socket, code, visitorId]);
 
@@ -92,6 +95,10 @@ const Message = () => {
     if (!socket) return;
 
     const handleNewMessage = async (messageData) => {
+      if (messageData.senderId === visitorId) {
+        return;
+      }
+
       const messageExists = messages.some(msg =>
         msg._id === messageData._id ||
         (msg.tempId && msg.tempId === messageData.tempId)

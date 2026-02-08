@@ -9,6 +9,7 @@ import LiveClock from './LiveClock.jsx';
 import { FiHelpCircle, FiMessageSquare, FiSettings } from 'react-icons/fi';
 import { useRightSidebar } from '../contexts/rightSIdebarContext.jsx';
 import feedbackStore from '../store/feedbackStore.js';
+import messageStore from '../store/messageStore.js';
 
 const Navbar = () => {
   const location = useLocation();
@@ -21,6 +22,7 @@ const Navbar = () => {
   const { visitorId } = fingerprintStore();
   const { isOpen, setIsOpen } = useRightSidebar();
   const { submitFeedback, runServer } = feedbackStore();
+  const { socket } = messageStore();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -29,8 +31,9 @@ const Navbar = () => {
   };
 
   const handleExit = async () => {
-    await exitRoom(code, visitorId);
+    await socket.emit("exit-room", { roomCode: code, userId: visitorId });
     navigate('/');
+    await exitRoom(code, visitorId);
   };
 
   return (
