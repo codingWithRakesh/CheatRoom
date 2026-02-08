@@ -6,6 +6,16 @@ import messageStore from '../store/messageStore';
 import roomStore from '../store/roomStore';
 import fingerprintStore from '../store/fingerprintStore';
 
+const debounce = (func, delay) => {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+};
+
 const MessageInput = ({
     isAIEnabled,
     setIsAIEnabled,
@@ -24,6 +34,20 @@ const MessageInput = ({
     const { socket } = messageStore();
     const { currentRoomCode } = roomStore();
     const { visitorId } = fingerprintStore();
+
+    const debouncedTyping = useRef(null);
+    const debouncedStopTyping = useRef(null);
+
+    useEffect(() => {
+        if (socket && currentRoomCode && visitorId) {
+            debouncedTyping.current = debounce(() => {
+                socket.emit("typing", { room: currentRoomCode, visitorId });
+            }, 300);
+            debouncedStopTyping.current = debounce(() => {
+                socket.emit("stop_typing", { room: currentRoomCode, visitorId });
+            }, 1000);
+        }
+    }, [socket, currentRoomCode, visitorId]);
 
     useEffect(() => {
         if (textareaRef.current) {
@@ -133,12 +157,13 @@ const MessageInput = ({
                             placeholder={isAIEnabled ? "Ask AI anything..." : "Type a message..."}
                             value={messageInput}
                             onChange={(e) => {
-                                setMessageInput(e.target.value)
-                                socket.emit("typing", { room: currentRoomCode, visitorId });
-
-                                setTimeout(() => {
-                                    socket.emit("stop_typing", { room: currentRoomCode, visitorId });
-                                }, 1000);
+                                setMessageInput(e.target.value);
+                                if (debouncedTyping.current) {
+                                    debouncedTyping.current();
+                                }
+                                if (debouncedStopTyping.current) {
+                                    debouncedStopTyping.current();
+                                }
                             }}
                             onKeyPress={handleKeyPress}
                             className='w-full bg-transparent outline-none text-white text-base resize-none px-2 py-2 max-h-[40rem] overflow-y-auto'

@@ -324,6 +324,10 @@ const sendMessage = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Room not found");
     }
 
+    if (!isAI && room.participants && !room.participants.includes(senderId)) {
+        throw new ApiError(403, "You are not a participant in this room");
+    }
+
     const message = await Message.create({
         content,
         senderId,

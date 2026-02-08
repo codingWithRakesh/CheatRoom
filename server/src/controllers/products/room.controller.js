@@ -79,10 +79,10 @@ const joinRoom = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Room not found");
     }
 
-    if (!room.participants.includes(visitorId)) {
-        room.participants.push(visitorId);
-        await room.save({ validateBeforeSave: true });
-    }
+    await Room.updateOne(
+        { codeHash },
+        { $addToSet: { participants: visitorId } }
+    );
 
     return res.status(200).json(
         new ApiResponse(200, { code: code }, "Joined room successfully")

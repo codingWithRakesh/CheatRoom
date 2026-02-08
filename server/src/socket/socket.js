@@ -11,6 +11,14 @@ const io = new Server(server, {
     cors: {
         origin: process.env.CORS_ORIGIN || "http://localhost:5173",
         methods: ['GET', 'POST']
+    },
+    maxHttpBufferSize: 10 * 1024 * 1024,
+    transports: ['websocket', 'polling'],
+    pingInterval: 30000,
+    pingTimeout: 10000,
+    connectionStateRecovery: {
+        maxDisconnectionDuration: 2 * 60 * 1000,
+        skipMiddlewares: true,
     }
 });
 
@@ -28,6 +36,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("typing", async ({ room, visitorId }) => {
+        return;
         const codeHash = CryptoUtils.hashRoomCode(room);
         const roomD = await Room.findOne({ codeHash });
 
@@ -42,6 +51,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("stop_typing", async ({ room, visitorId }) => {
+        return;
         const codeHash = CryptoUtils.hashRoomCode(room);
         const roomD = await Room.findOne({ codeHash });
 
