@@ -1,12 +1,15 @@
-server/node_modules/
+main_server/node_modules/
 util_server/node_modules/
 client/node_modules/
 feedback_server/.env
 
-server/.env
+main_server/.env
 util_server/.env
 client/.env
 
 credentials.json
 credentials_Oauth.json
 note.txt
+
+server/node_modules/
+server/.env
