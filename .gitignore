@@ -11,5 +11,4 @@ credentials.json
 credentials_Oauth.json
 note.txt
 
-server/node_modules/
-server/.env
+server/
