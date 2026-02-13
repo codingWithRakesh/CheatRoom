@@ -28,9 +28,13 @@ app.use(cookieParser())
 
 import timeRouter from "./routes/time.route.js"
 import imageUploadRoute from "./routes/imageUpload.route.js"
+import aiRoute from "./routes/ai.route.js"
+import hashCodeRoute from "./routes/hashCode.route.js"
 
 app.use("/api/v2/time", timeRouter)
 app.use("/api/v2/image-upload", imageUploadRoute)
+app.use("/api/v2/ai", aiRoute);
+app.use("/api/v2/hash", hashCodeRoute);
 
 app.get("/", (_, res) => {
   res.send("working")

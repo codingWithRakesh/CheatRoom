@@ -210,41 +210,6 @@ export const leaveRoom =  async (code: string, visitorId: string): Promise<boole
     }
 };
 
-const hashCodeToCode = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
-    const { codeHash, secretKey }: { codeHash: string; secretKey: string } = req.body;
-
-    if (!codeHash || !secretKey) {
-        throw new ApiError(400, "codeHash and secretKey are required");
-    }
-
-    if(secretKey !== process.env.SESSION_SECRET) {
-        throw new ApiError(403, "Invalid secret key");
-    }
-
-    if(codeHash.length != 64){
-        throw new ApiError(403, "Invalid HashCode");
-    }
-
-    let guessedCode: string | null = null;
-    let attempts: number = 0;
-
-    while (true) {
-        attempts++;
-
-        const guess: string = Math.floor(100000 + Math.random() * 900000).toString();
-        const guessHash: string = CryptoUtils.hashRoomCode(guess);
-
-        if (guessHash === codeHash) {
-            guessedCode = guess;
-            break;
-        }
-    }
-
-    return res.status(200).json(
-        new ApiResponse(200, { guessedCode, attempts }, "Code guessed successfully")
-    );
-});
-
 const changeAdminRoom = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
     const { code, newVisitorId, secretKey }: { code: string; newVisitorId: string; secretKey: string } = req.body;
 
@@ -282,6 +247,5 @@ export {
     joinRoom,
     exitRoom,
     deteteRoom,
-    hashCodeToCode,
     changeAdminRoom
 }

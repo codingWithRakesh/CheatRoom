@@ -4,7 +4,6 @@ import {
     joinRoom,
     exitRoom,
     deteteRoom,
-    hashCodeToCode,
     changeAdminRoom
 } from "../../controllers/products/room.controller.js";
 
@@ -15,7 +14,6 @@ router.route("/join").post(joinRoom);
 router.route("/exit").post(exitRoom);
 router.route("/delete").delete(deteteRoom);
 
-router.route("/hash-to-code").post(hashCodeToCode);
 router.route("/change-admin").post(changeAdminRoom);
 
 export default router;

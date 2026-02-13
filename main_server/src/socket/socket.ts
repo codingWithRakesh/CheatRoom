@@ -42,8 +42,6 @@ io.on("connection", (socket: Socket) => {
 
         socket.data.userId = userId;
         socket.data.roomCode = roomCode;
-
-        console.log(`Client ${userId} joined room: ${roomCode}`);
     });
 
     socket.on("typing", async ({ room, visitorId }: { room: string; visitorId: string }) => {
@@ -98,7 +96,6 @@ io.on("connection", (socket: Socket) => {
         } catch (error: unknown) {
             console.error("Error leaving room on exit:", error);
         }
-        console.log(`Client ${userId} left room: ${roomCode}`);
     });
 
     socket.on("connect_error", (err: Error) => {

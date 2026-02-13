@@ -408,7 +408,20 @@ const sendMessage = asyncHandler(async (req: Request, res: Response): Promise<vo
                 isAi: true
             });
 
-            aiResponse = await geminiValue(content);
+            const response = await fetch(`${process.env.SERVER_URL}/api/v2/ai/gemini`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"                
+                },
+                body: JSON.stringify({ content })
+            });
+
+            if(!response.ok) {
+                throw new ApiError(500, "Failed to generate AI response");
+            }
+            const data = await response.json();
+            
+            aiResponse = data.data.result;
             const aiMessage: IMessage = await Message.create({
                 content: aiResponse,
                 senderId: "ai",
