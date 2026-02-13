@@ -19,7 +19,7 @@ import CryptoUtils from '../utils/cryptoUtils.js';
 import ProfileColor from '../components/ProfileColor';
 import MessageInput from '../components/MessageInput';
 import MessageShow from '../components/MessageShow';
-import { handleError } from '../utils/toastUtils.js';
+import { handleError, handleSuccess } from '../utils/toastUtils.js';
 
 hljs.registerLanguage('cpp', cpp);
 hljs.registerLanguage('javascript', javascript);
@@ -57,7 +57,7 @@ const Message = () => {
   useEffect(() => {
     const initializeEncryption = async () => {
       if (!code) return;
-
+      handleSuccess("AI is new available in the chat!");
       try {
         await getRoomPublicKey(code);
         await getRoomPrivateKey(code);
