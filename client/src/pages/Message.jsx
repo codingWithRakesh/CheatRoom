@@ -57,7 +57,7 @@ const Message = () => {
   useEffect(() => {
     const initializeEncryption = async () => {
       if (!code) return;
-      handleSuccess("AI is new available in the chat!");
+      
       try {
         await getRoomPublicKey(code);
         await getRoomPrivateKey(code);
