@@ -397,6 +397,28 @@ const sendMessage = asyncHandler(async (req: Request, res: Response): Promise<vo
     let aiResponse: string;
 
     if (isAI) {
+        const isRoast: boolean = content.toLowerCase().includes("roast");
+        const roastPrompt: string = `
+            ${content}
+            If the user types "roast <name>", use that name in the roast.
+            If no name is given, do NOT use any name.
+
+            Roast a single person in Hinglish (Hindi written in English).
+
+            Style:
+            - Like: "Nitish, tumhari ex ne tumhe chhoda kyuki usko laga ki tumhara future toh uske past se bhi zyada dark hai."
+            - Like: "Teri ex ne bhi Google Maps use kiya hoga, sahi rasta choose karne ke liye."
+            - Conversational, punchline-based, and witty
+
+            Instructions:
+            - Make the roast slightly personal and direct
+            - FIRST priority: roast about his/her ex
+            - If not possible, pick ONLY ONE topic randomly from: poor life, low CGPA, weak coding skills
+            - Output ONLY one roast sentence
+            - No explanations
+            - No emojis
+            - No extra text
+        `;
         try {
             // room.participants.forEach(participant => {
             //     const socketuserName = `${participant}-${roomCode}`;
@@ -411,16 +433,16 @@ const sendMessage = asyncHandler(async (req: Request, res: Response): Promise<vo
             const response = await fetch(`${process.env.SERVER_URL}/api/v2/ai/gemini`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"                
+                    "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ content })
+                body: JSON.stringify({ content: isRoast ? roastPrompt : content })
             });
 
-            if(!response.ok) {
+            if (!response.ok) {
                 throw new ApiError(500, "Failed to generate AI response");
             }
             const data = await response.json();
-            
+
             aiResponse = data.data.result;
             const aiMessage: IMessage = await Message.create({
                 content: aiResponse,
