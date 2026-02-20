@@ -25,9 +25,9 @@ function App() {
   const socketRef = useRef(null);
   const { isOpen, setIsOpen } = useRightSidebar();
   const { isActive, setIsActive } = useFeedback();
-  const { submitFeedback } = feedbackStore();
   const {currentDate, setCurrentDate} = useTime();
   const { fetchCurrentTime } = timeStore();
+  const { submitFeedback, runServer } = feedbackStore();
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -80,7 +80,7 @@ function App() {
         localStorage.setItem("visitorId", visitorId);
       }
 
-      await registerFingerprint(visitorId);
+      await Promise.all([registerFingerprint(visitorId), runServer()]);
 
       socketRef.current = io(`${import.meta.env.VITE_CORS}`, {
         extraHeaders: {
