@@ -41,5 +41,17 @@ function dataToFormData(feedbackData) {
   return formData;
 }
 
+const isOnlyEmoji = (text) => {
+  if (!text) return false;
 
-export { generateStableSystemFingerprint, getErrorMessage, dataToFormData };
+  const trimmed = text.trim();
+
+  const emojiRegex =/^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji}\uFE0F)$/u;
+
+  const chars = [...trimmed];
+
+  return chars.length > 0 && chars.every((char) => emojiRegex.test(char));
+};
+
+
+export { generateStableSystemFingerprint, getErrorMessage, dataToFormData, isOnlyEmoji };

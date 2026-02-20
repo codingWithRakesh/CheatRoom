@@ -16,6 +16,7 @@ import { BsFiletypeCsv } from 'react-icons/bs';
 import { CiFileOn } from "react-icons/ci";
 import LoadingDots from './LoadingDots';
 import messageStore from '../store/messageStore';
+import { isOnlyEmoji } from '../constants/constant'
 
 const MessageShow = ({
     messages,
@@ -398,8 +399,9 @@ const MessageShow = ({
                                                                     );
                                                                 },
                                                                 p({ node, children, ...props }) {
+                                                                    const isEmojiOnly = isOnlyEmoji(String(children).trim());
                                                                     return (
-                                                                        <p className="whitespace-pre-wrap break-words" {...props}>
+                                                                        <p className={`whitespace-pre-wrap break-words ${isEmojiOnly ? 'text-[3rem]' : ''}`} {...props}>
                                                                             {children}
                                                                         </p>
                                                                     );
