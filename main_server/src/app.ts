@@ -50,10 +50,16 @@ import messageRouter from "./routes/products/message.route.js"
 import privateKeyRouter from "./routes/products/privateKeys.route.js"
 import errorHandler from "./middlewares/error.middleware.js";
 
+import adminRouter from "./routes/admin/admin.route.js"
+import analyzeJoinRouter from "./routes/admin/analyzeJoin.route.js"
+
 app.use("/api/v1/fingerprint", fingerprintRouter)
 app.use("/api/v1/room", roomRouter)
 app.use("/api/v1/message", messageRouter)
 app.use("/api/v1/key", privateKeyRouter)
+
+app.use("/api/v1/admin", adminRouter)
+app.use("/api/v1/analyze-join", analyzeJoinRouter);
 
 app.use(errorHandler);
 

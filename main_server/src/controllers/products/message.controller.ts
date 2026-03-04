@@ -1,4 +1,3 @@
-
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
 import { ApiError } from "../../utils/apiError.js";
@@ -12,7 +11,9 @@ import zlib from "zlib";
 import { CryptoUtils } from "../../utils/cryptoUtils.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GenerateContentResponse, GoogleGenAI } from "@google/genai";
+import { AnalyzeJoin, IAnalyzeJoin } from "../../models/analyze/analyzeJoin.model.js";
 import { Request, Response } from "express";
+import { fingerprintId } from "../../cache/data.js"
 
 const getMessages = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { code }: { code: string } = req.params as { code: string };

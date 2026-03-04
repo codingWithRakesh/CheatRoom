@@ -9,9 +9,10 @@ import mongoose, { ObjectId } from "mongoose";
 import { IMessage, Message } from "../../models/products/message.model.js";
 import { deleteFromImageKit } from "../../utils/imageKit.js";
 import { deleteFromCloudinary, getPublicId } from "../../utils/cloudinary.js";
-import userData from "../../cache/data.js"
 import { IRoom } from "../../models/products/room.model.js";
+import { AnalyzeJoin, IAnalyzeJoin } from "../../models/analyze/analyzeJoin.model.js";
 import { NextFunction, Request, Response } from "express";
+import { fingerprintId } from "../../cache/data.js";
 
 const generateRoomCode = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
     const { publicKey, privateKey, visitorId }: { publicKey: string; privateKey: string; visitorId: string } = req.body;
@@ -25,7 +26,7 @@ const generateRoomCode = asyncHandler(async (req: Request, res: Response, next: 
 
     let code: string;
     let codeHash: string;
-    let exists : { _id: ObjectId } | null = null;
+    let exists: { _id: ObjectId } | null = null;
 
     do {
         code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -72,9 +73,6 @@ const joinRoom = asyncHandler(async (req: Request, res: Response): Promise<Respo
         throw new ApiError(400, "visitorId is required");
     }
 
-    userData.set("code", code);
-    userData.set("visitorId", visitorId);
-
     const codeHash: string = CryptoUtils.hashRoomCode(code);
 
     const room: IRoom | null = await Room.findOne({ codeHash });
@@ -91,6 +89,30 @@ const joinRoom = asyncHandler(async (req: Request, res: Response): Promise<Respo
         throw new ApiError(500, "Failed to join room");
     }
 
+    const fingerprint: IFingerprint | null = await Fingerprint.findOne({ visitorId });
+    if (!fingerprint) {
+        throw new ApiError(404, "Fingerprint not found");
+    }
+
+    const analyzeJoin: IAnalyzeJoin | null = await AnalyzeJoin.findOne({ visitorId: fingerprint._id, roomId: room._id });
+    if (analyzeJoin) {
+        await AnalyzeJoin.findOneAndUpdate(
+            { visitorId: fingerprint._id, roomId: room._id },
+            {
+                $inc: { countJoins: 1 },
+            },
+            { new: true, upsert: true }
+        );
+    }else{
+        await AnalyzeJoin.create({
+            visitorId: fingerprint._id,
+            roomId: room._id,
+            countJoins: 1
+        });
+    }
+
+    fingerprintId.set("visitorId", fingerprint._id.toString());
+
     return res.status(200).json(
         new ApiResponse(200, { code: code }, "Joined room successfully")
     );
@@ -106,8 +128,7 @@ const exitRoom = asyncHandler(async (req: Request, res: Response): Promise<Respo
         throw new ApiError(400, "visitorId is required");
     }
 
-    userData.delete("code");
-    userData.delete("visitorId");
+    fingerprintId.delete("visitorId");
 
     const codeHash: string = CryptoUtils.hashRoomCode(code);
 
@@ -173,6 +194,7 @@ const deteteRoom = asyncHandler(async (req: Request, res: Response): Promise<Res
     const isDeletedMessages: { deletedCount?: number } = await Message.deleteMany({ roomID: room._id });
     const isDeletedKey: { deletedCount?: number } = await PrivateKey.deleteOne({ roomID: room._id });
     const isDeletedRoom: { deletedCount?: number } = await Room.deleteOne({ _id: room._id });
+    const isDeletedAnalyzeJoin: { deletedCount?: number } = await AnalyzeJoin.deleteMany({ roomId: room._id });
 
     if (!isDeletedRoom.deletedCount) {
         console.log(500, "Failed to delete room");
@@ -183,13 +205,16 @@ const deteteRoom = asyncHandler(async (req: Request, res: Response): Promise<Res
     if (!isDeletedMessages.deletedCount) {
         console.log(500, "Failed to delete messages");
     }
-
+    if (!isDeletedAnalyzeJoin.deletedCount) {
+        console.log(500, "Failed to delete analyze join records");
+    }
+    
     return res.status(200).json(
         new ApiResponse(200, { isAdmin }, "Room deleted successfully")
     );
 });
 
-export const leaveRoom =  async (code: string, visitorId: string): Promise<boolean> => {
+export const leaveRoom = async (code: string, visitorId: string): Promise<boolean> => {
     try {
         const codeHash: string = CryptoUtils.hashRoomCode(code);
 
@@ -203,6 +228,8 @@ export const leaveRoom =  async (code: string, visitorId: string): Promise<boole
             return false;
         }
 
+        fingerprintId.delete("visitorId");
+
         return true;
     } catch (error) {
         console.error("Error leaving room:", error);
@@ -211,10 +238,10 @@ export const leaveRoom =  async (code: string, visitorId: string): Promise<boole
 };
 
 const changeAdminRoom = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
-    const { code, newVisitorId, secretKey }: { code: string; newVisitorId: string; secretKey: string } = req.body;
+    const { code, newVisitorId }: { code: string; newVisitorId: string; } = req.body;
 
-    if(secretKey !== process.env.SESSION_SECRET) {
-        throw new ApiError(403, "Invalid secret key");
+    if (!req.admin) {
+        throw new ApiError(401, "Admin not authenticated");
     }
 
     if (!code || !/^[0-9]{6}$/.test(code)) {

@@ -4,14 +4,10 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { CryptoUtils } from "../utils/cryptoUtils.js";
 
 const hashCodeToCode = asyncHandler(async (req, res) => {
-    const { codeHash, secretKey } = req.body;
+    const { codeHash } = req.body;
 
-    if (!codeHash || !secretKey) {
-        throw new ApiError(400, "codeHash and secretKey are required");
-    }
-
-    if(secretKey !== process.env.SESSION_SECRET) {
-        throw new ApiError(403, "Invalid secret key");
+    if (!codeHash) {
+        throw new ApiError(400, "codeHash is required");
     }
 
     if(codeHash.length != 64){

@@ -2,9 +2,9 @@ export const DB_NAME = "cheatRoom"
 export const options : { 
     httpOnly: boolean; 
     secure: boolean; 
-    sameSite: 'None' | 'Lax' | 'Strict' 
+    sameSite: 'none' | 'lax' | 'strict' 
 } = {
     httpOnly: true,
     secure: true,
-    sameSite: 'None'
+    sameSite: 'none'
 }

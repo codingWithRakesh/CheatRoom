@@ -5,6 +5,7 @@ import { PrivateKey } from "../models/products/privateKeys.model.js";
 import { deleteFromCloudinary, getPublicId } from "./cloudinary.js";
 import { deleteFromImageKit } from "./imageKit.js";
 import mongoose from "mongoose";
+import { AnalyzeJoin } from "../models/analyze/analyzeJoin.model.js";
 
 cron.schedule("* * * * *", async (): Promise<void> => {
   try {
@@ -31,6 +32,7 @@ cron.schedule("* * * * *", async (): Promise<void> => {
       await Message.deleteMany({ roomID: room._id });
       await PrivateKey.deleteOne({ roomID: room._id });
       await Room.deleteOne({ _id: room._id });
+      await AnalyzeJoin.deleteMany({ roomId: room._id });
     }
 
     const rooms: IRoom[] = await Room.find().select("_id");
