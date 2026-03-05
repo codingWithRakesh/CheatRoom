@@ -6,6 +6,10 @@ import { CryptoUtils } from "../utils/cryptoUtils.js";
 const hashCodeToCode = asyncHandler(async (req, res) => {
     const { codeHash } = req.body;
 
+    if(!req.admin){
+        throw new ApiError(401, "Unauthorized");
+    }
+
     if (!codeHash) {
         throw new ApiError(400, "codeHash is required");
     }

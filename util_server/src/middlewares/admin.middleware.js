@@ -12,6 +12,7 @@ const verifyAdmin = asyncHandler(async (req, _, next) => {
         if (decoded.username !== process.env.ADMIN_USERNAME) {
             throw new ApiError(401, "Invalid admin token");
         }
+        req.admin = decoded;
         next();
     } catch (err) {
         throw new ApiError(401, "Invalid admin token");

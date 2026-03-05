@@ -12,7 +12,7 @@ declare global {
 }
 
 const verifyAdmin = asyncHandler(async (req: Request, _: Response, next: NextFunction): Promise<Response | void> => {
-    const token = req.cookies.adminToken;
+    const token = req.cookies.adminToken || req.header("Authorization")?.replace("Bearer ", "");
     if (!token) {
         throw new ApiError(401, "Admin token is missing");
     }
