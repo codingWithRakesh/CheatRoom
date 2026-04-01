@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { LuFileJson, LuReplyAll } from 'react-icons/lu';
 import { MdDone } from 'react-icons/md';
 import { TbCopy } from 'react-icons/tb';
@@ -10,13 +10,14 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { RiFileExcel2Fill, RiFileWord2Fill } from 'react-icons/ri';
 import { PiMicrosoftPowerpointLogoFill } from "react-icons/pi";
-import view1 from "../assets/images/view1.jpg";
 import { IoDocumentTextOutline, IoLogoJavascript } from 'react-icons/io5';
 import { BsFiletypeCsv } from 'react-icons/bs';
 import { CiFileOn } from "react-icons/ci";
 import LoadingDots from './LoadingDots';
 import messageStore from '../store/messageStore';
 import { isOnlyEmoji } from '../constants/constant'
+import * as pdfjsLib from 'pdfjs-dist';
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs`;
 
 const MessageShow = ({
     messages,
@@ -38,6 +39,9 @@ const MessageShow = ({
     })
     const { socket } = messageStore();
 
+    const [pdfThumbnails, setPdfThumbnails] = useState({});
+    const pdfThumbnailsRef = useRef({});
+
     useEffect(() => {
         if (!socket) return;
 
@@ -57,6 +61,38 @@ const MessageShow = ({
             socket.off("hide_typing");
         };
     }, [socket]);
+
+    const renderPdfThumbnail = async (url, msgId) => {
+        if (pdfThumbnailsRef.current[msgId]) return;
+        pdfThumbnailsRef.current[msgId] = 'loading';
+        try {
+            let pdfSource;
+
+            if (url.startsWith('blob:') || url.startsWith('data:')) {
+                pdfSource = { url };
+            } else {
+                const response = await fetch(url, { mode: 'cors' });
+                const arrayBuffer = await response.arrayBuffer();
+                pdfSource = { data: arrayBuffer };
+            }
+
+            const pdf = await pdfjsLib.getDocument(pdfSource).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 1.5 });
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const ctx = canvas.getContext('2d');
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            const dataUrl = canvas.toDataURL();
+            pdfThumbnailsRef.current[msgId] = dataUrl;
+            setPdfThumbnails(prev => ({ ...prev, [msgId]: dataUrl }));
+        } catch (err) {
+            console.error('PDF render error:', err);
+            pdfThumbnailsRef.current[msgId] = 'error';
+            setPdfThumbnails(prev => ({ ...prev, [msgId]: 'error' }));
+        }
+    };
 
 
     const handleDownload = async (url, fileName = "download") => {
@@ -107,9 +143,9 @@ const MessageShow = ({
                     <div className="group relative my-2.5 p-0">
                         <div className="absolute w-full h-full bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
                             <button
-                                onClick={() => window.open(msg.content, '_blank')}
+                                onClick={() => handleDownload(msg.content, msg.fileName)}
                                 className="inline-flex cursor-pointer items-center justify-center rounded-full h-10 w-10 bg-white/30 hover:bg-white/50 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50"
-                                title="View image"
+                                title="Download image"
                             >
                                 <svg className="w-5 h-5 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
                                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3" />
@@ -117,6 +153,20 @@ const MessageShow = ({
                             </button>
                         </div>
                         <img src={msg.content} alt={msg.fileName} className="rounded-lg max-w-full max-h-96" />
+                    </div>
+                );
+            } else if (msg.fileType?.startsWith('video/')) {
+                return (
+                    <div className="my-2.5">
+                        <video
+                            src={msg.content}
+                            controls
+                            autoPlay={false}
+                            className="rounded-lg max-w-full max-h-96"
+                            title={msg.fileName}
+                        >
+                            Your browser does not support the video tag.
+                        </video>
                     </div>
                 );
             } else {
@@ -212,6 +262,51 @@ const MessageShow = ({
                     const i = Math.floor(Math.log(bytes) / Math.log(k));
                     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
                 };
+
+                if (msg.fileType?.includes('pdf')) {
+                    const msgId = msg._id || msg.tempId;
+                    console.log({ msg, pdfThumbnails, content: msg.content, msgId });
+                    if (!pdfThumbnails[msgId]) renderPdfThumbnail(msg.content, msgId);
+
+                    return (
+                        <div className="my-2.5 bg-zinc-800 rounded-xl overflow-hidden min-w-[260px] max-w-sm">
+                            <div className="w-full bg-zinc-700 overflow-hidden max-h-[140px]">
+                                {pdfThumbnails[msgId] && pdfThumbnails[msgId] !== 'error' ? (
+                                    <img
+                                        src={pdfThumbnails[msgId]}
+                                        alt="PDF preview"
+                                        className="w-full object-cover"
+                                    />
+                                ) : pdfThumbnails[msgId] === 'error' ? (
+                                    <div className="text-gray-400 text-xs py-8">Preview unavailable</div>
+                                ) : (
+                                    <div className="text-gray-400 text-xs py-8 animate-pulse">Loading preview...</div>
+                                )}
+                            </div>
+
+                            <div className="flex items-center justify-between p-3">
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                    <div className="flex-shrink-0 bg-red-600 rounded-lg w-9 h-9 flex items-center justify-center">
+                                        <span className="text-white text-xs font-bold">PDF</span>
+                                    </div>
+                                    <span className="text-sm font-medium text-white truncate">
+                                        {msg.fileName}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => handleDownload(msg.content, msg.fileName)}
+                                    className="flex-shrink-0 ml-2 flex cursor-pointer items-center justify-center w-9 h-9 rounded-full bg-zinc-600 hover:bg-zinc-500 transition-colors"
+                                    title="Download PDF"
+                                >
+                                    <svg className="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M14.707 7.793a1 1 0 0 0-1.414 0L11 10.086V1.5a1 1 0 0 0-2 0v8.586L6.707 7.793a1 1 0 1 0-1.414 1.414l4 4a1 1 0 0 0 1.416 0l4-4a1 1 0 0 0-.002-1.414Z" />
+                                        <path d="M18 12h-2.55l-2.975 2.975a3.5 3.5 0 0 1-4.95 0L4.55 12H2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2Zm-3 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    );
+                }
 
                 return (
                     <div className="flex items-start my-2.5 bg-gray-50 dark:bg-zinc-800 rounded-xl p-2">
