@@ -6,6 +6,7 @@ export interface IMessage extends Document {
   roomID: Types.ObjectId;
   senderId: string;
   content: string;
+  iv?: string;
   isFile: boolean;
   fileName?: string;
   fileType?: string;
@@ -31,6 +32,9 @@ const messageSchema = new Schema<IMessage>({
   content: {
     type: String,
     required: true
+  },
+  iv: {
+    type: String,
   },
   isFile: {
     type: Boolean,

@@ -8,3 +8,4 @@ export const options : {
     secure: true,
     sameSite: 'none'
 }
+export const algorithm = "aes-256-cbc";

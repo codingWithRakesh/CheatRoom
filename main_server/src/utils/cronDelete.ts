@@ -6,12 +6,16 @@ import { deleteFromCloudinary, getPublicId } from "./cloudinary.js";
 import { deleteFromImageKit } from "./imageKit.js";
 import mongoose from "mongoose";
 import { AnalyzeJoin } from "../models/analyze/analyzeJoin.model.js";
+import { algorithm } from "../constants.js";
+import { CryptoUtils } from "../utils/cryptoUtils.js";
 
 cron.schedule("* * * * *", async (): Promise<void> => {
   try {
     const expiredRooms: IRoom[] = await Room.find({
       createdAt: { $lt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000) } // 10 days
     });
+
+    const key: Buffer = CryptoUtils.genrateKey();
 
     for (const room of expiredRooms) {
       const messages: IMessage[] = await Message.find({ roomID: room._id });
@@ -21,9 +25,13 @@ cron.schedule("* * * * *", async (): Promise<void> => {
           if (message.fileId) {
             await deleteFromImageKit(message.fileId);
           } else {
-            const publicId: string | null = getPublicId(message.content);
-            if (publicId) {
-              await deleteFromCloudinary(publicId);
+            if (message.content && message.iv) {
+              const key: Buffer = CryptoUtils.genrateKey();
+              const decrypted: string = CryptoUtils.decrypt(algorithm, key, message.content, message.iv);
+              const publicId: string | null = getPublicId(decrypted);
+              if (publicId) {
+                await deleteFromCloudinary(publicId);
+              }
             }
           }
         }
@@ -44,9 +52,13 @@ cron.schedule("* * * * *", async (): Promise<void> => {
         if (message.fileId) {
           await deleteFromImageKit(message.fileId);
         } else {
-          const publicId: string | null = getPublicId(message.content);
-          if (publicId) {
-            await deleteFromCloudinary(publicId);
+          if (message.content && message.iv) {
+            const key: Buffer = CryptoUtils.genrateKey();
+            const decrypted: string = CryptoUtils.decrypt(algorithm, key, message.content, message.iv);
+            const publicId: string | null = getPublicId(decrypted);
+            if (publicId) {
+              await deleteFromCloudinary(publicId);
+            }
           }
         }
       }

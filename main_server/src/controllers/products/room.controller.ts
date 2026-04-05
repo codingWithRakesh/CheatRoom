@@ -13,6 +13,7 @@ import { IRoom } from "../../models/products/room.model.js";
 import { AnalyzeJoin, IAnalyzeJoin } from "../../models/analyze/analyzeJoin.model.js";
 import { NextFunction, Request, Response } from "express";
 import { fingerprintId } from "../../cache/data.js";
+import { algorithm } from "../../constants.js";
 
 const generateRoomCode = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
     const { publicKey, privateKey, visitorId }: { publicKey: string; privateKey: string; visitorId: string } = req.body;
@@ -183,9 +184,13 @@ const deteteRoom = asyncHandler(async (req: Request, res: Response): Promise<Res
             if (message.fileId) {
                 await deleteFromImageKit(message.fileId);
             } else {
-                const publicId: string | null = getPublicId(message.content);
-                if (publicId) {
-                    await deleteFromCloudinary(publicId);
+                if (message.content && message.iv) {
+                    const key: Buffer = CryptoUtils.genrateKey();
+                    const decrypted: string = CryptoUtils.decrypt(algorithm, key, message.content, message.iv);
+                    const publicId: string | null = getPublicId(decrypted);
+                    if (publicId) {
+                        await deleteFromCloudinary(publicId);
+                    }
                 }
             }
         }

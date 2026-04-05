@@ -14,6 +14,12 @@ import { GenerateContentResponse, GoogleGenAI } from "@google/genai";
 import { AnalyzeJoin, IAnalyzeJoin } from "../../models/analyze/analyzeJoin.model.js";
 import { Request, Response } from "express";
 import { fingerprintId } from "../../cache/data.js"
+import { algorithm } from "../../constants.js";
+
+interface IAllMessages extends IRoom {
+    IMessage: IMessage;
+    messages: IMessage[];
+}
 
 const getMessages = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { code }: { code: string } = req.params as { code: string };
@@ -24,7 +30,7 @@ const getMessages = asyncHandler(async (req: Request, res: Response): Promise<vo
 
     const codeHash: string = CryptoUtils.hashRoomCode(code);
 
-    const messages: IMessage[] = await Room.aggregate([
+    const messages: IAllMessages[] = await Room.aggregate<IAllMessages>([
         {
             $match: {
                 codeHash
@@ -71,7 +77,34 @@ const getMessages = asyncHandler(async (req: Request, res: Response): Promise<vo
         throw new ApiError(404, "No messages found");
     }
 
-    res.status(200).json(new ApiResponse(200, messages, "Messages retrieved successfully"));
+    const metaData: IAllMessages = messages[0];
+
+    const key: Buffer = CryptoUtils.genrateKey();
+    const decryptedMessages: IMessage[] = messages[0]?.messages.map((msg: IMessage) => {
+        if (msg.isFile && msg.content && msg.iv) {
+            try {
+                const decryptedUrl: string = CryptoUtils.decrypt(algorithm, key, msg.content, msg.iv);
+                return { ...msg, content: decryptedUrl };
+            } catch (error) {
+                console.error("Decryption error for message ID:", msg._id, error);
+                return msg;
+            }
+        }
+        return msg;
+    }) || [];
+
+    const responseMessages: IAllMessages[] = [{
+        _id: metaData._id,
+        codeHash: metaData.codeHash,
+        participants: metaData.participants,
+        isAdminRoom: metaData.isAdminRoom,
+        publicKey: metaData.publicKey,
+        createdAt: metaData.createdAt,
+        updatedAt: metaData.updatedAt,
+        messages: decryptedMessages
+    }] as IAllMessages[];
+
+    res.status(200).json(new ApiResponse(200, responseMessages, "Messages retrieved successfully"));
 });
 
 const bufferToBase64 = (buffer: Buffer, mimetype: string): string =>
@@ -231,8 +264,12 @@ const uploadFile = asyncHandler(async (req: Request, res: Response): Promise<voi
         throw new ApiError(400, "Unsupported file type");
     }
 
+    const key: Buffer = CryptoUtils.genrateKey();
+    const { data: encryptedUrl, iv }: { data: string; iv: string } = CryptoUtils.encrypt(algorithm, key, fileUrl);
+
     const message: IMessage = await Message.create({
-        content: fileUrl,
+        content: encryptedUrl,
+        iv,
         senderId,
         roomID: room._id,
         isFile: true,
@@ -274,6 +311,10 @@ const uploadFile = asyncHandler(async (req: Request, res: Response): Promise<voi
     //         io.to(socketuserName).emit("message", messagedata[0]);
     //     }
     // });
+
+    if (messagedata[0]) {
+        messagedata[0].content = fileUrl;
+    }
 
     io.to(roomCode).emit("message", messagedata[0]);
 
