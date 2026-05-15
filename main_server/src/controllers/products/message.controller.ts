@@ -318,7 +318,7 @@ const uploadFile = asyncHandler(async (req: Request, res: Response): Promise<voi
 
     io.to(roomCode).emit("message", messagedata[0]);
 
-    res.status(200).json(new ApiResponse(200, messagedata[0], "Upload successful"));
+    res.status(200).json(new ApiResponse(200, null, "Upload successful"));
 });
 
 let ai: GoogleGenAI | null = null;
@@ -520,7 +520,7 @@ const sendMessage = asyncHandler(async (req: Request, res: Response): Promise<vo
         }
     }
 
-    res.status(201).json(new ApiResponse(201, messagedata[0], "Message sent successfully"));
+    res.status(201).json(new ApiResponse(201, null, "Message sent successfully"));
 });
 
 
