@@ -80,7 +80,7 @@ function App() {
         localStorage.setItem("visitorId", visitorId);
       }
 
-      await Promise.all([registerFingerprint(visitorId), runServer()]);
+      await Promise.all([registerFingerprint(visitorId)]);
 
       socketRef.current = io(`${import.meta.env.VITE_CORS}`, {
         extraHeaders: {
